@@ -87,3 +87,12 @@ updates:
     labels:
       - "ok-to-test"
       - "release-note-none"
+
+  # Maintain kueue shellcheck dependency
+  - package-ecosystem: "docker"
+    directory: "/hack/perf-tests-sleep"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "ok-to-test"
+      - "release-note-none"
