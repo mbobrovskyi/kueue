@@ -87,10 +87,12 @@ updates:
       - "ok-to-test"
       - "release-note-none"
     groups:
-      all:
-        update-types:
-          - "minor"
-          - "patch"
+      @emotion:
+        patterns:
+          - "@mui/*"
+      @mui:
+        patterns:
+          - "@mui/*"
 
   # Maintain docker dependencies for kueue-viz frontend
   - package-ecosystem: "docker"
