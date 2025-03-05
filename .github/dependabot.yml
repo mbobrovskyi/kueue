@@ -87,10 +87,10 @@ updates:
       - "ok-to-test"
       - "release-note-none"
     groups:
-      @emotion:
+      emotion:
         patterns:
           - "@mui/*"
-      @mui:
+      mui:
         patterns:
           - "@mui/*"
 
