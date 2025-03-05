@@ -89,7 +89,7 @@ updates:
     groups:
       emotion:
         patterns:
-          - "@mui/*"
+          - "@emotion/*"
       mui:
         patterns:
           - "@mui/*"
