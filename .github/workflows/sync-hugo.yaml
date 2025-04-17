@@ -12,7 +12,6 @@ jobs:
 
         # Permission required to edit a PR
         permissions:
-          pull-requests: write
           contents: write
 
         steps:
