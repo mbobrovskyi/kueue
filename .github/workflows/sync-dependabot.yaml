@@ -64,6 +64,6 @@ jobs:
                   echo "No changes to commit"
                 fi
             - name: Push changes
-              if: ${{ steps.check.outputs.result == 'true' }}
+              if: ${{ steps.check.outputs.PUSH == 'true' }}
               run: |
                 git push --force
