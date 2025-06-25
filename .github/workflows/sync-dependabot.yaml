@@ -1,0 +1,72 @@
+# This workflow syncs dependency versions for Dependabot PRs
+name: Dependabot Version Sync
+
+on:
+  pull_request_target:
+    branches: [ main ]
+
+jobs:
+    run-sync-hugo-version:
+        if: ${{ contains(github.event.pull_request.labels.*.name, 'ok-to-test') && github.actor == 'dependabot[bot]' }}
+        runs-on: ubuntu-latest
+
+        # Permission required to edit a PR
+        permissions:
+          contents: write
+
+        env:
+          PUSH: false
+
+        steps:
+            - uses: actions/checkout@v4
+              with: 
+                ref: ${{github.head_ref}}
+            - name: Set git user from last commit
+              run: |
+                git config user.name "$(git log -1 --pretty=%an)"
+                git config user.email "$(git log -1 --pretty=%ae)"
+            - name: Check and fix commit message
+              run: |
+                # Get the current commit message
+                COMMIT_MSG=$(git log -1 --pretty=%B)
+                
+                # Check for '@' in package names (e.g., @mui/icons-material')
+                if echo "$COMMIT_MSG" | grep -E '@[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+' > /dev/null; then
+                  echo "Found '@' in package names. Replacing with '(at)'..."
+                  
+                  # Replace @ in package names (e.g., @mui/icons-material) with (at), preserve email addresses
+                  NEW_COMMIT_MSG=$(echo "$COMMIT_MSG" | sed -E 's|(@)([a-zA-Z0-9_-]+/([a-zA-Z0-9_-]+))|(at)\2|g')
+                  
+                  # Amend the commit message
+                  git commit --amend -m "$NEW_COMMIT_MSG"
+                  
+                  echo "PUSH=true" >> $GITHUB_ENV
+                else
+                  echo "No '@' found in package names. No changes needed."
+                fi
+            - name: Sync hugo version
+              if: ${{ contains(github.event.pull_request.title, 'hugo') }}
+              run: |
+                make sync-hugo-version
+                if ! git diff --exit-code; then
+                  git add .
+                  git commit -m "Sync hugo version"
+                  echo "PUSH=true" >> $GITHUB_ENV
+                else
+                  echo "No changes to commit"
+                fi
+            - name: Sync controller-tools version
+              if: ${{ contains(github.event.pull_request.title, 'sigs.k8s.io/controller-tools') }}
+              run: |
+                make manifests update-helm
+                if ! git diff --exit-code; then
+                  git add .
+                  git commit -m "Sync controller-tools version"
+                  echo "PUSH=true" >> $GITHUB_ENV
+                else
+                  echo "No changes to commit"
+                fi
+            - name: Push changes
+              if: ${{ env.PUSH == 'true' }}
+              run: |
+                git push --force

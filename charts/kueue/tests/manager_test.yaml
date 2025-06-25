@@ -1,0 +1,34 @@
+suite: test manager deployment
+templates:
+  - manager/manager.yaml
+  # This is required for the annotation `charts.kueue.x-k8s.io/config-checksum`
+  - manager/manager-config.yaml
+tests:
+  - it: should set replicas correctly
+    template: manager/manager.yaml
+    set:
+      controllerManager:
+        replicas: 2
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+  - it: should set the pod priorityClassName when provided
+    template: manager/manager.yaml
+    set:
+      controllerManager:
+        manager:
+          priorityClassName: "foo"
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: foo
+  - it: should not render the pod priorityClassName if not set
+    template: manager/manager.yaml
+    set:
+      controllerManager:
+        manager:
+          priorityClassName: ""
+    asserts:
+      - notExists:
+          path: spec.template.spec.priorityClassName
