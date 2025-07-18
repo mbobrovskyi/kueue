@@ -63,6 +63,7 @@ updates:
     labels:
       - "ok-to-test"
       - "release-note-none"
+      
 
   # Maintain go dependencies for KueueViz backend
   - package-ecosystem: "gomod"
