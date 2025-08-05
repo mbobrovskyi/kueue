@@ -11,7 +11,7 @@ permissions:
 jobs:
   update-release-issue:
     # TODO: set true
-    if: github.event.pull_request.merged == false && startsWith(github.event.pull_request.title, 'Prepare release v')
+    # if: github.event.pull_request.merged == false && startsWith(github.event.pull_request.title, 'Prepare release v')
     runs-on: ubuntu-latest
 
     steps:
