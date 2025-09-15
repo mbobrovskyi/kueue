@@ -1,3 +1,34 @@
+## v0.13.5
+
+Changes since `v0.13.1`:
+
+## Urgent Upgrade Notes 
+
+### (No, really, you MUST read this before you upgrade)
+
+- ProvisioningRequest: Remove setting deprecated ProvisioningRequest annotations on Kueue-managed Pods:
+  - cluster-autoscaler.kubernetes.io/consume-provisioning-request
+  - cluster-autoscaler.kubernetes.io/provisioning-class-name
+  
+  If you are implementing a ProvisioningRequest reconciler used by Kueue you should
+  make sure the new annotations are supported:
+  - autoscaling.x-k8s.io/consume-provisioning-request
+  - autoscaling.x-k8s.io/provisioning-class-name (#6381, @kannon92)
+ 
+## Changes by Kind
+
+### Bug or Regression
+
+- ElasticJobs: Fix the bug that scheduling of the Pending workloads was not triggered on scale-down of the running 
+  elastic Job which could result in admitting one or more of the queued workloads. (#6395, @ichekrygin)
+- Fix support for PodGroup integration used by external controllers, which determine the 
+  the target LocalQueue and the group size only later. In that case the hash would not be 
+  computed resulting in downstream issues for ProvisioningRequest.
+  
+  Now such an external controller can indicate the control over the PodGroup by adding
+  the `kueue.x-k8s.io/pod-suspending-parent` annotation, and later patch the Pods by setting
+  other metadata, like the kueue.x-k8s.io/queue-name label to initiate scheduling of the PodGroup. (#6286, @pawloch00)
+
 ## v0.13.1
 
 Changes since `v0.13.0`:
