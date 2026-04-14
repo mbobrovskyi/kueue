@@ -79,6 +79,8 @@ updates:
       mui-packages:
         patterns:
           - "@mui/*"
+        update-types:
+          - "major"
       # vite, @vitejs/*, and vitest share peer/version expectations; one PR avoids npm ERESOLVE in CI.
       vite-stack:
         patterns:
