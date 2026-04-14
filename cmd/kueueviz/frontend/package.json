@@ -23,14 +23,14 @@
     "react": "^19.2.5",
     "react-ace": "^14.0.1",
     "react-dom": "^19.2.5",
-    "react-router-dom": "^7.14.0",
+    "react-router-dom": "^7.14.1",
     "react-toastify": "^11.0.5"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.1.4",
     "depcheck": "^1.4.7",
     "vite": "^7.3.2",
-    "vitest": "^4.0.18",
+    "vitest": "^4.1.4",
     "serve": "^14.2.6"
   },
   "browserslist": {
