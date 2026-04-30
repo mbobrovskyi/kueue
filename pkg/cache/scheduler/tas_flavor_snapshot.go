@@ -1496,7 +1496,7 @@ func (s *TASFlavorSnapshot) fillInCounts(requirements *topologyAssignmentPodRequ
 		leaf.stateWithLeader = requirements.requests.CountIn(remainingCapacity)
 	}
 	for _, root := range s.roots {
-		s.fillInCountsHelper(root, state.sliceSize, state.sliceLevelIdx, 0)
+		s.fillInCountsHelper(root, state.sliceSize, state.sliceLevelIdx, 0, state.leaderCount > 0)
 	}
 }
 
@@ -1509,7 +1509,7 @@ func belongsToRequiredDomain(leaf *leafDomain, requiredReplacementDomain utiltas
 	return strings.HasPrefix(string(utiltas.DomainID(leaf.levelValues)), string(requiredReplacementDomain))
 }
 
-func (s *TASFlavorSnapshot) fillInCountsHelper(domain *domain, sliceSize int32, sliceLevelIdx int, level int) {
+func (s *TASFlavorSnapshot) fillInCountsHelper(domain *domain, sliceSize int32, sliceLevelIdx int, level int, leaderRequired bool) {
 	// logic for a leaf
 	if len(domain.children) == 0 {
 		if level == sliceLevelIdx {
@@ -1522,23 +1522,33 @@ func (s *TASFlavorSnapshot) fillInCountsHelper(domain *domain, sliceSize int32, 
 	// logic for a parent
 	childrenCapacity := int32(0)
 	sliceCapacity := int32(0)
-
+	hasWithLeaderCapacityContributor := false
 	minStateWithLeaderDifference := int32(math.MaxInt32)
 	minSliceStateWithLeaderDifference := int32(math.MaxInt32)
 	leaderState := int32(0)
 
 	for _, child := range domain.children {
-		s.fillInCountsHelper(child, sliceSize, sliceLevelIdx, level+1)
-		childrenCapacity += child.state
+		s.fillInCountsHelper(child, sliceSize, sliceLevelIdx, level+1, leaderRequired)
+		childState := child.state
+		childStateWithLeader := child.stateWithLeader
+		childrenCapacity += childState
 		sliceCapacity += child.sliceState
-		minStateWithLeaderDifference = min(child.state-child.stateWithLeader, minStateWithLeaderDifference)
-		minSliceStateWithLeaderDifference = min(child.sliceState-child.sliceStateWithLeader, minSliceStateWithLeaderDifference)
+		if !leaderRequired || child.leaderState > 0 {
+			hasWithLeaderCapacityContributor = true
+			minStateWithLeaderDifference = min(childState-childStateWithLeader, minStateWithLeaderDifference)
+			minSliceStateWithLeaderDifference = min(child.sliceState-child.sliceStateWithLeader, minSliceStateWithLeaderDifference)
+		}
 		leaderState = max(child.leaderState, leaderState)
 	}
 	domain.state = childrenCapacity
-	domain.stateWithLeader = childrenCapacity - minStateWithLeaderDifference
+	sliceStateWithLeader := int32(0)
+	if hasWithLeaderCapacityContributor {
+		domain.stateWithLeader = childrenCapacity - minStateWithLeaderDifference
+		sliceStateWithLeader = sliceCapacity - minSliceStateWithLeaderDifference
+	} else {
+		domain.stateWithLeader = 0
+	}
 	domain.leaderState = leaderState
-	sliceStateWithLeader := sliceCapacity - minSliceStateWithLeaderDifference
 
 	if level == sliceLevelIdx {
 		// initialize the sliceState for the requested slice level.
