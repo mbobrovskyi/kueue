@@ -601,6 +601,86 @@ var _ = ginkgo.Describe("Kueue visibility server", ginkgo.Label("area:singleclus
 				}, util.Timeout, util.Interval).Should(gomega.Succeed())
 			})
 		})
+
+		ginkgo.When("A subject is bound to kueue-batch-user-role, but not to kueue-batch-admin-role, and reads a LocalQueue sharing a ClusterQueue across Namespaces", func() {
+			var roleBinding *rbacv1.RoleBinding
+
+			ginkgo.BeforeEach(func() {
+				ginkgo.By("Create a LocalQueue in a different Namespace sharing the same ClusterQueue", func() {
+					localQueueB = utiltestingapi.MakeLocalQueue("b", nsB.Name).ClusterQueue(clusterQueue.Name).Obj()
+					util.CreateLocalQueuesAndWaitForActive(ctx, k8sClient, localQueueB)
+				})
+
+				ginkgo.By("Schedule a pending job in each Namespace against the shared ClusterQueue", func() {
+					jobCases := []struct {
+						JobName        string
+						LocalQueueName string
+						nsName         string
+					}{
+						{JobName: "lq-a-low-prio", LocalQueueName: localQueueA.Name, nsName: nsA.Name},
+						{JobName: "lq-b-low-prio", LocalQueueName: localQueueB.Name, nsName: nsB.Name},
+					}
+					for _, jobCase := range jobCases {
+						job := testingjob.MakeJob(jobCase.JobName, jobCase.nsName).
+							Queue(kueue.LocalQueueName(jobCase.LocalQueueName)).
+							Image(util.GetAgnHostImage(), util.BehaviorExitFast).
+							RequestAndLimit(corev1.ResourceCPU, "1").
+							WorkloadPriorityClass(lowPriorityClass.Name).
+							Obj()
+						util.MustCreate(ctx, k8sClient, job)
+					}
+				})
+
+				roleBinding = readPendingWorkloadsUserRoleBinding(nsA.Name)
+				util.MustCreate(ctx, k8sClient, roleBinding)
+				ginkgo.By("Wait for ResourceNotFound error instead of Forbidden to make sure the role binding works", func() {
+					gomega.Eventually(func(g gomega.Gomega) {
+						_, err := impersonatedVisibilityClient.LocalQueues(nsA.Name).GetPendingWorkloadsSummary(ctx, "non-existent", metav1.GetOptions{})
+						g.Expect(err).Should(utiltesting.BeNotFoundError())
+					}, util.Timeout, util.Interval).Should(gomega.Succeed())
+				})
+			})
+
+			ginkgo.AfterEach(func() {
+				gomega.Expect(k8sClient.Delete(ctx, roleBinding)).To(gomega.Succeed())
+			})
+
+			ginkgo.It("Should only expose pending workloads from the caller's own Namespace", func() {
+				ginkgo.By("Verifying the user only sees their own Namespace's pending workload in LocalQueueA", func() {
+					wantPendingWorkloads := []visibility.PendingWorkload{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Namespace:       nsA.Name,
+								OwnerReferences: defaultOwnerReferenceForJob("lq-a-low-prio"),
+							},
+							Priority:             lowPriorityClass.Value,
+							PositionInLocalQueue: 0,
+							LocalQueueName:       kueue.LocalQueueName(localQueueA.Name),
+						},
+					}
+					// PositionInClusterQueue is relative to the other Namespace's equal-priority workload
+					// and is therefore not deterministic; the isolation guarantee under test is that only
+					// the caller's own Namespace workload is returned, never the workload from nsB.
+					cmpOpts := append(cmp.Options{}, pendingWorkloadsCmpOpts...)
+					cmpOpts = append(cmpOpts, cmpopts.IgnoreFields(visibility.PendingWorkload{}, "PositionInClusterQueue"))
+					gomega.Eventually(func(g gomega.Gomega) {
+						info, err := impersonatedVisibilityClient.LocalQueues(nsA.Name).GetPendingWorkloadsSummary(ctx, localQueueA.Name, metav1.GetOptions{})
+						g.Expect(err).NotTo(gomega.HaveOccurred())
+						g.Expect(info.Items).Should(gomega.BeComparableTo(wantPendingWorkloads, cmpOpts...))
+					}, util.Timeout, util.Interval).Should(gomega.Succeed())
+				})
+
+				ginkgo.By("Verifying the user is Forbidden from a LocalQueue in a different Namespace", func() {
+					_, err := impersonatedVisibilityClient.LocalQueues(nsB.Name).GetPendingWorkloadsSummary(ctx, localQueueB.Name, metav1.GetOptions{})
+					gomega.Expect(err).Should(utiltesting.BeForbiddenError())
+				})
+
+				ginkgo.By("Verifying the user is Forbidden from the cluster-scoped ClusterQueue endpoint", func() {
+					_, err := impersonatedVisibilityClient.ClusterQueues().GetPendingWorkloadsSummary(ctx, clusterQueue.Name, metav1.GetOptions{})
+					gomega.Expect(err).Should(utiltesting.BeForbiddenError())
+				})
+			})
+		})
 	})
 
 	ginkgo.When("A subject is bound to kueue-batch-admin-role", func() {
@@ -643,10 +723,7 @@ var _ = ginkgo.Describe("Kueue visibility server", ginkgo.Label("area:singleclus
 		var roleBinding *rbacv1.RoleBinding
 
 		ginkgo.BeforeEach(func() {
-			roleBinding = utiltesting.MakeRoleBinding("read-pending-workloads", nsA.Name).
-				RoleRef(rbacv1.GroupName, "ClusterRole", "kueue-batch-user-role").
-				Subject(rbacv1.ServiceAccountKind, "default", kueueNS).
-				Obj()
+			roleBinding = readPendingWorkloadsUserRoleBinding(nsA.Name)
 			util.MustCreate(ctx, k8sClient, roleBinding)
 			ginkgo.By("Wait for ResourceNotFound error instead of Forbidden to make sure the role bindings work", func() {
 				gomega.Eventually(func(g gomega.Gomega) {
@@ -689,3 +766,10 @@ var _ = ginkgo.Describe("Kueue visibility server", ginkgo.Label("area:singleclus
 		})
 	})
 })
+
+func readPendingWorkloadsUserRoleBinding(ns string) *rbacv1.RoleBinding {
+	return utiltesting.MakeRoleBinding("read-pending-workloads", ns).
+		RoleRef(rbacv1.GroupName, "ClusterRole", "kueue-batch-user-role").
+		Subject(rbacv1.ServiceAccountKind, "default", kueueNS).
+		Obj()
+}
