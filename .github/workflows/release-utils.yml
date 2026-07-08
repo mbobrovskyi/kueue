@@ -50,6 +50,7 @@ jobs:
             TITLE="${{ github.event.issue.title }}"
             if [[ "$TITLE" =~ ^Release\ (v[0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
               VERSION="${BASH_REMATCH[1]}"
+              echo "VERSION=$VERSION"
               
               # Configure git identity
               git config --global user.name "kueue-release-bot"
