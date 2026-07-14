@@ -115,6 +115,13 @@ and StatefulSet integrations, which already do not act on resources in non-opted
 
 We deprecate `podOptions.namespaceSelector` and remove it in a future release.
 
+### Since Kueue v0.19
+
+The `ManagedJobsNamespaceSelectorAlwaysRespected` feature gate is graduated to GA and locked 
+to enabled. The `managedJobsNamespaceSelector` now always restricts the reconciliation of all 
+workloads regardless of whether they have a `kueue.x-k8s.io/queue-name` label. The legacy 
+behavior (gate disabled) is no longer available.
+
 ### User Stories (Optional)
 
 #### Story 1
