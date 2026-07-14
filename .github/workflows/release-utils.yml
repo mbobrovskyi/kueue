@@ -10,7 +10,8 @@ jobs:
       github.event.issue.pull_request == null &&
       (contains(github.event.comment.body, '/sync-release-notes') ||
        contains(github.event.comment.body, '/wait-for-images') ||
-       contains(github.event.comment.body, '/wait-for-prod-images'))
+       contains(github.event.comment.body, '/wait-for-prod-images') ||
+       contains(github.event.comment.body, '/create-draft-release'))
     outputs:
       command: ${{ steps.parse.outputs.command }}
       version: ${{ steps.parse.outputs.version }}
@@ -68,6 +69,8 @@ jobs:
             COMMAND="wait-for-images"
           elif printf '%s' "$BODY" | tr -d '\r' | grep -qE '^/wait-for-prod-images[[:space:]]*$'; then
             COMMAND="wait-for-prod-images"
+          elif printf '%s' "$BODY" | tr -d '\r' | grep -qE '^/create-draft-release[[:space:]]*$'; then
+            COMMAND="create-draft-release"
           else
             gh issue comment "$ISSUE_NUMBER" --body "Invalid command format."
             exit 0
@@ -179,3 +182,53 @@ jobs:
           
           # Post the parsed comment to the GitHub issue.
           gh issue comment "$ISSUE_NUMBER" --body-file comment.md
+
+  create-draft-release:
+    name: Create Draft Release
+    runs-on: ubuntu-latest
+    needs: authorize
+    if: ${{ needs.authorize.outputs.command == 'create-draft-release' }}
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.authorize.outputs.version }}
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        env:
+          VERSION: ${{ needs.authorize.outputs.version }}
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Build Release Artifacts
+        run: |
+          make release-artifacts IMAGE_REGISTRY=registry.k8s.io/kueue GIT_TAG="$VERSION"
+
+      - name: Create Draft Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          VERSION: ${{ needs.authorize.outputs.version }}
+          TARGET_REPO: ${{ github.repository }}
+        run: |
+          # Fetch release notes from the issue body.
+          RELEASE_ISSUE_BODY=$(gh issue view "$ISSUE_NUMBER" --json body -q '.body')
+          CHANGELOG=$(echo "$RELEASE_ISSUE_BODY" | sed -n '/^```markdown$/,/^```$/p' | sed '/^```markdown$/d;/^```$/d')
+          echo "$CHANGELOG" > release_notes.md
+          
+          # Pass the file to the --notes-file flag.
+          gh release create "$VERSION" \
+            --verify-tag \
+            --repo "$TARGET_REPO" \
+            --title "$VERSION" \
+            --notes-file release_notes.md \
+            --draft \
+            release-artifacts/*
+          
+          # Post a comment to the GitHub issue indicating that the release has been created.
+          gh issue comment "$ISSUE_NUMBER" --body "✅ Draft release has been created."
