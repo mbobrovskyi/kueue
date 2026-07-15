@@ -303,9 +303,12 @@ jobs:
           # Build release artifacts
           make release-artifacts IMAGE_REGISTRY=registry.k8s.io/kueue GIT_TAG="$VERSION"
 
+          ACTION="created"
+
           # Delete existing release if it exists.
           if gh release view "$VERSION" --repo "$TARGET_REPO" &>/dev/null; then
             gh release delete "$VERSION" --repo "$TARGET_REPO" --yes
+            ACTION="updated"
           fi
 
           # Create a draft release.
@@ -332,4 +335,4 @@ jobs:
           fi
 
           # Post a comment to the GitHub issue.
-          gh issue comment "$ISSUE_NUMBER" --body "✅ Draft release has been successfully created."
+          gh issue comment "$ISSUE_NUMBER" --body "✅ Draft release has been successfully ${ACTION}."
