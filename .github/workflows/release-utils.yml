@@ -292,6 +292,12 @@ jobs:
         with:
           go-version-file: 'go.mod'
 
+      - name: Build Release Artifacts
+        env:
+          VERSION: ${{ needs.authorize.outputs.version }}
+        run: |
+          make release-artifacts IMAGE_REGISTRY=registry.k8s.io/kueue GIT_TAG="$VERSION"
+
       - name: Create Draft Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -300,9 +306,6 @@ jobs:
           TARGET_REPO: ${{ github.repository }}
           CHANGELOG: ${{ needs.authorize.outputs.changelog }}
         run: |
-          # Build release artifacts
-          make release-artifacts IMAGE_REGISTRY=registry.k8s.io/kueue GIT_TAG="$VERSION"
-
           ACTION="created"
 
           # Delete existing release if it exists.
@@ -317,7 +320,7 @@ jobs:
             --verify-tag \
             --repo "$TARGET_REPO" \
             --title "$VERSION" \
-            --notes-file release_notes.md \
+            --notes "$CHANGELOG" \
             --draft \
             release-artifacts/* 2> err.log
           RELEASE_EXIT=$?
