@@ -309,7 +309,9 @@ jobs:
           ACTION="created"
 
           # Delete existing release if it exists.
-          if gh release view "$VERSION" --repo "$TARGET_REPO" &>/dev/null; then
+          # Use 'gh release list' to look for the draft release, as 'gh release view' ignores drafts by default.
+          if gh release list --repo "$TARGET_REPO" --exclude-drafts=false | grep -q "^$VERSION"; then
+            echo "Draft release $VERSION already exists. Deleting it first to perform a clean update..."
             gh release delete "$VERSION" --repo "$TARGET_REPO" --yes
             ACTION="updated"
           fi
