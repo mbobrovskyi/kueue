@@ -27,6 +27,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/component-base/featuregate"
 	"k8s.io/utils/ptr"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	kueue "sigs.k8s.io/kueue/apis/kueue/v1beta2"
 	"sigs.k8s.io/kueue/pkg/constants"
@@ -425,6 +426,40 @@ func TestValidateWorkload(t *testing.T) {
 			gotErr := ValidateWorkload(tc.workload, nil)
 			if diff := cmp.Diff(tc.wantErr, gotErr, cmpopts.IgnoreFields(field.Error{}, "Detail", "BadValue")); diff != "" {
 				t.Errorf("ValidateWorkload() mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestWarningsForWorkload(t *testing.T) {
+	testCases := map[string]struct {
+		workload     *kueue.Workload
+		wantWarnings admission.Warnings
+	}{
+		"no topology request": {
+			workload: utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).PodSets(
+				*utiltestingapi.MakePodSet("main", 1).Obj(),
+			).Obj(),
+		},
+		"non-negative subGroupCount": {
+			workload: utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).PodSets(
+				*utiltestingapi.MakePodSet("main", 1).SubGroupCount(new(int32(0))).Obj(),
+			).Obj(),
+		},
+		"negative subGroupCount warns": {
+			workload: utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).PodSets(
+				*utiltestingapi.MakePodSet("main", 1).SubGroupCount(new(int32(-1))).Obj(),
+			).Obj(),
+			wantWarnings: admission.Warnings{
+				"spec.podSets[0].topologyRequest.subGroupCount: negative value -1 is deprecated and will be rejected in a future release",
+			},
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			gotWarnings := warningsForWorkload(tc.workload)
+			if diff := cmp.Diff(tc.wantWarnings, gotWarnings); diff != "" {
+				t.Errorf("warningsForWorkload() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
