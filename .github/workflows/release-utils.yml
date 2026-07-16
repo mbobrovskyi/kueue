@@ -52,6 +52,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_BODY: ${{ github.event.issue.body }}
+          TARGET_REPO: ${{ github.repository }}
         run: |
           if [[ ! "$TITLE" =~ ^Release\ (v[0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
             gh issue comment "$ISSUE_NUMBER" --body "Invalid issue title: \`$TITLE\`. Expected format: \`Release vX.Y.Z\`."
@@ -83,6 +84,11 @@ jobs:
           
           CHANGELOG=$(echo "ISSUE_BODY" | sed -n '/^```markdown$/,/^```$/p' | sed '/^```markdown$/d;/^```$/d')
           echo "changelog=$CHANGELOG" >> "$GITHUB_OUTPUT"
+          
+          # Check if a release for this version already exists (draft or published).
+          RELEASE_STATE=$(gh release list --repo "$TARGET_REPO" --exclude-drafts=false --json tagName,isDraft 2>/dev/null | \
+            jq -r --arg ver "$VERSION" '.[] | select(.tagName == $ver) | if .isDraft then "draft" else "published" end')
+          echo "release-state=$RELEASE_STATE" >> "$GITHUB_OUTPUT"
 
   sync-notes:
     name: Sync Release Notes
@@ -216,7 +222,15 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CHANGELOG: ${{ needs.authorize.outputs.changelog }}
+          RELEASE_STATE: ${{ needs.authorize.outputs.release-state }}
         run: |
+          if [ "$RELEASE_STATE" = "published" ]; then
+            BODY="⚠️ Release \`$VERSION\` is already published. Skipping draft release creation."
+            echo "$BODY"
+            gh issue comment "$ISSUE_NUMBER" --body "$BODY"
+            exit 0
+          fi
+          
           if [ -z "$CHANGELOG" ]; then
             gh issue comment "$ISSUE_NUMBER" --body "❌ Failed to create release tag \`$VERSION\`: No changelog found in the issue description. Make sure the issue has the Markdown block under \`## Changelog\`."
             exit 1
@@ -304,12 +318,9 @@ jobs:
           VERSION: ${{ needs.authorize.outputs.version }}
           TARGET_REPO: ${{ github.repository }}
           CHANGELOG: ${{ needs.authorize.outputs.changelog }}
+          RELEASE_STATE: ${{ needs.authorize.outputs.release-state }}
         run: |
           ACTION="created"
-
-          # Check if a release for this version already exists (draft or published).
-          RELEASE_STATE=$(gh release list --repo "$TARGET_REPO" --exclude-drafts=false --json tagName,isDraft 2>/dev/null | \
-            jq -r --arg ver "$VERSION" '.[] | select(.tagName == $ver) | if .isDraft then "draft" else "published" end')
 
           if [ "$RELEASE_STATE" = "published" ]; then
             BODY="⚠️ Release \`$VERSION\` is already published. Skipping draft release creation to avoid overwriting a live release."
