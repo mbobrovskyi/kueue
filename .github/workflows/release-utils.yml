@@ -118,7 +118,7 @@ jobs:
           # Configure git identity
           git config --global user.name "kueue-release-bot"
           git config --global user.email "kueue-release-bot@kubernetes.io"
-          yes y | ./hack/releasing/sync-notes.sh "$VERSION"
+          echo "y" | ./hack/releasing/sync-notes.sh "$VERSION"
           gh issue comment "$ISSUE_NUMBER" --body "Release notes for version $VERSION have been synced."
 
   wait-for-images:
