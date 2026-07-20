@@ -89,7 +89,7 @@ jobs:
 
           FULL_VERSION="$VERSION"
           if [ "$COMMAND" = "create-release-candidate" ]; then
-            LAST_RC=$(git tag -l "${BASE_VERSION}-rc.*" | grep -oP '(?<=rc\.)\d+' | sort -n | tail -1)
+            LAST_RC=$(git tag -l "${VERSION}-rc.*" | grep -oP '(?<=rc\.)\d+' | sort -n | tail -1)
             if [ -z "$LAST_RC" ]; then
               NEXT_RC=0
             else
@@ -99,7 +99,7 @@ jobs:
           fi
           echo "full-version=$FULL_VERSION" >> "$GITHUB_OUTPUT"
           
-          CHANGELOG=$(echo "ISSUE_BODY" | sed -n '/^```markdown$/,/^```$/p' | sed '/^```markdown$/d;/^```$/d')
+          CHANGELOG=$(echo "$ISSUE_BODY" | sed -n '/^```markdown$/,/^```$/p' | sed '/^```markdown$/d;/^```$/d')
           echo "changelog=$CHANGELOG" >> "$GITHUB_OUTPUT"
 
   sync-notes:
