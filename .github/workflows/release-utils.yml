@@ -59,10 +59,9 @@ jobs:
             gh issue comment "$ISSUE_NUMBER" --body "Invalid issue title: \`$TITLE\`. Expected format: \`Release vX.Y.Z\`."
             exit 0
           fi
-          VERSION="${BASH_REMATCH[1]}"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          BASE_VERSION="${BASH_REMATCH[1]}"
 
-          if [[ "$VERSION" =~ ^v([0-9]+)\.([0-9]+)\.[0-9]+ ]]; then
+          if [[ "$BASE_VERSION" =~ ^v([0-9]+)\.([0-9]+)\.[0-9]+ ]]; then
             echo "branch=release-${BASH_REMATCH[1]}.${BASH_REMATCH[2]}" >> "$GITHUB_OUTPUT"
           fi
 
@@ -86,6 +85,18 @@ jobs:
             exit 0
           fi
           echo "command=$COMMAND" >> "$GITHUB_OUTPUT"
+
+          VERSION="$BASE_VERSION"
+          if [ "$COMMAND" = "create-release-candidate" ]; then
+            LAST_RC=$(git tag -l "${BASE_VERSION}-rc.*" | grep -oP '(?<=rc\.)\d+' | sort -n | tail -1)
+            if [ -z "$LAST_RC" ]; then
+              NEXT_RC=0
+            else
+              NEXT_RC=$((LAST_RC + 1))
+            fi
+            VERSION="${BASE_VERSION}-rc.${NEXT_RC}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           
           CHANGELOG=$(echo "ISSUE_BODY" | sed -n '/^```markdown$/,/^```$/p' | sed '/^```markdown$/d;/^```$/d')
           echo "changelog=$CHANGELOG" >> "$GITHUB_OUTPUT"
@@ -126,49 +137,6 @@ jobs:
           git config --global user.email "kueue-release-bot@kubernetes.io"
           yes y | ./hack/releasing/sync-notes.sh "$VERSION"
           gh issue comment "$ISSUE_NUMBER" --body "Release notes for version $VERSION have been synced."
-
-  create-release-candidate:
-    name: Create Release Candidate
-    runs-on: ubuntu-latest
-    needs: authorize
-    if: ${{ needs.authorize.outputs.command == 'create-release-candidate' }}
-    permissions:
-      contents: write
-      issues: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          fetch-depth: 0
-          ref: main
-          persist-credentials: false
-
-      - name: Create and Push Release Branch
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          VERSION: ${{ needs.authorize.outputs.version }}
-          BRANCH: ${{ needs.authorize.outputs.branch }}
-        run: |
-          # Block patch releases
-          if [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.([0-9]+)$ ]]; then
-            PATCH="${BASH_REMATCH[1]}"
-            if [ "$PATCH" != "0" ]; then
-              gh issue comment "$ISSUE_NUMBER" --body "❌ Release candidate creation is only supported for major and minor releases (vX.Y.0)."
-              exit 0
-            fi
-          fi
-          
-          # Find the highest existing RC number for this version and bump it
-          LAST_RC=$(git tag -l "${VERSION}-rc.*" | grep -oP '(?<=rc\.)\d+' | sort -n | tail -1)
-          if [ -z "$LAST_RC" ]; then
-            NEXT_RC=0
-          else
-            NEXT_RC=$((LAST_RC + 1))
-          fi
-          RELEASE_CANDIDATE_VERSION="${VERSION}-rc.${NEXT_RC}"
-
-          gh issue comment "$ISSUE_NUMBER" --body "✅ Release candidate \`$RELEASE_CANDIDATE_VERSION\` has been successfully created."
 
   create-release-branch:
     name: Create Release Branch
@@ -309,7 +277,9 @@ jobs:
     name: Tag Release
     runs-on: ubuntu-latest
     needs: authorize
-    if: ${{ needs.authorize.outputs.command == 'tag-release' }}
+    if: |
+      needs.authorize.outputs.command == 'tag-release' ||
+      needs.authorize.outputs.command == 'create-release-candidate'
     permissions:
       contents: write
       issues: write
@@ -317,6 +287,7 @@ jobs:
       BRANCH: ${{ needs.authorize.outputs.branch }}
       ISSUE_NUMBER: ${{ github.event.issue.number }}
       CHANGELOG: ${{ needs.authorize.outputs.changelog }}
+      COMMAND: ${{ needs.authorize.outputs.command }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -383,13 +354,21 @@ jobs:
             ACTION="updated"
           fi
           
-          gh issue comment "$ISSUE_NUMBER" --body "✅ Release tag \`$VERSION\` has been successfully ${ACTION}."
+          if [ "$COMMAND" != "create-release-candidate" ]; then
+            gh issue comment "$ISSUE_NUMBER" --body "✅ Release tag \`$VERSION\` has been successfully ${ACTION}."
+          fi
 
   create-draft-release:
     name: Create Draft Release
     runs-on: ubuntu-latest
-    needs: authorize
-    if: ${{ needs.authorize.outputs.command == 'create-draft-release' }}
+    needs: [authorize, tag-release]
+    if: |
+      always() &&
+      needs.authorize.result == 'success' &&
+      (
+        (needs.authorize.outputs.command == 'create-draft-release' && needs.tag-release.result == 'skipped') ||
+        (needs.authorize.outputs.command == 'create-release-candidate' && needs.tag-release.result == 'success')
+      )
     permissions:
       contents: write
       issues: write
@@ -419,6 +398,7 @@ jobs:
           VERSION: ${{ needs.authorize.outputs.version }}
           TARGET_REPO: ${{ github.repository }}
           CHANGELOG: ${{ needs.authorize.outputs.changelog }}
+          COMMAND: ${{ needs.authorize.outputs.command }}
         run: |
           ACTION="created"
 
@@ -462,7 +442,30 @@ jobs:
             exit 1
           fi
 
-          # Post a comment to the GitHub issue.
-          BODY="✅ Draft release has been successfully ${ACTION}."
-          echo "$BODY"
-          gh issue comment "$ISSUE_NUMBER" --body "$BODY"
+          if [ "$COMMAND" != "create-release-candidate" ]; then
+            # Post a comment to the GitHub issue.
+            BODY="✅ Draft release has been successfully ${ACTION}."
+            echo "$BODY"
+            gh issue comment "$ISSUE_NUMBER" --body "$BODY"
+          fi
+
+  create-release-candidate:
+    name: Create Release Candidate
+    runs-on: ubuntu-latest
+    needs: [authorize, create-draft-release]
+    if: |
+      always() &&
+      needs.authorize.result == 'success' &&
+      needs.authorize.outputs.command == 'create-release-candidate' &&
+      needs.create-draft-release.result == 'success'
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - name: Create and Push Release Branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          VERSION: ${{ needs.authorize.outputs.version }}
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --body "✅ Release candidate \`$VERSION\` has been successfully created."
