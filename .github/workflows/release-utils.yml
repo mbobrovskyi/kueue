@@ -9,6 +9,7 @@ jobs:
     if: |
       github.event.issue.pull_request == null &&
       (contains(github.event.comment.body, '/sync-release-notes') ||
+       contains(github.event.comment.body, '/create-release-candidate') ||
        contains(github.event.comment.body, '/create-release-branch') ||
        contains(github.event.comment.body, '/tag-release') ||
        contains(github.event.comment.body, '/create-draft-release') ||
@@ -68,6 +69,8 @@ jobs:
           COMMAND=""
           if printf '%s' "$BODY" | tr -d '\r' | grep -qE '^/sync-release-notes[[:space:]]*$'; then
             COMMAND="sync-notes"
+          elif printf '%s' "$BODY" | tr -d '\r' | grep -qE '^/create-release-candidate[[:space:]]*$'; then
+            COMMAND="create-release-candidate"
           elif printf '%s' "$BODY" | tr -d '\r' | grep -qE '^/create-release-branch[[:space:]]*$'; then
             COMMAND="create-release-branch"
           elif printf '%s' "$BODY" | tr -d '\r' | grep -qE '^/tag-release[[:space:]]*$'; then
@@ -123,6 +126,42 @@ jobs:
           git config --global user.email "kueue-release-bot@kubernetes.io"
           yes y | ./hack/releasing/sync-notes.sh "$VERSION"
           gh issue comment "$ISSUE_NUMBER" --body "Release notes for version $VERSION have been synced."
+
+  create-release-candidate:
+    name: Create Release Candidate
+    runs-on: ubuntu-latest
+    needs: authorize
+    if: ${{ needs.authorize.outputs.command == 'create-release-candidate' }}
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          ref: main
+          persist-credentials: false
+
+      - name: Create and Push Release Branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          VERSION: ${{ needs.authorize.outputs.version }}
+          BRANCH: ${{ needs.authorize.outputs.branch }}
+        run: |
+          # Block patch releases
+          if [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.([0-9]+)$ ]]; then
+            PATCH="${BASH_REMATCH[1]}"
+            if [ "$PATCH" != "0" ]; then
+              gh issue comment "$ISSUE_NUMBER" --body "❌ Release candidate creation is only supported for major and minor releases (vX.Y.0)."
+              exit 0
+            fi
+          fi
+          
+          RELEASE_CANDIDATE_VERSION="${VERSION}-rc.0"
+
+          gh issue comment "$ISSUE_NUMBER" --body "✅ Release candidate \`$RELEASE_CANDIDATE_VERSION\` has been successfully created."
 
   create-release-branch:
     name: Create Release Branch
