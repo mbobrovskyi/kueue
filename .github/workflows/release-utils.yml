@@ -159,7 +159,14 @@ jobs:
             fi
           fi
           
-          RELEASE_CANDIDATE_VERSION="${VERSION}-rc.0"
+          # Find the highest existing RC number for this version and bump it
+          LAST_RC=$(git tag -l "${VERSION}-rc.*" | grep -oP '(?<=rc\.)\d+' | sort -n | tail -1)
+          if [ -z "$LAST_RC" ]; then
+            NEXT_RC=0
+          else
+            NEXT_RC=$((LAST_RC + 1))
+          fi
+          RELEASE_CANDIDATE_VERSION="${VERSION}-rc.${NEXT_RC}"
 
           gh issue comment "$ISSUE_NUMBER" --body "✅ Release candidate \`$RELEASE_CANDIDATE_VERSION\` has been successfully created."
 
