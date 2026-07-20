@@ -99,7 +99,7 @@ jobs:
           fi
           echo "full-version=$FULL_VERSION" >> "$GITHUB_OUTPUT"
           
-          CHANGELOG=$(echo "$ISSUE_BODY" | sed -n '/^```markdown$/,/^```$/p' | sed '/^```markdown$/d;/^```$/d')
+          CHANGELOG=$(echo "ISSUE_BODY" | sed -n '/^```markdown$/,/^```$/p' | sed '/^```markdown$/d;/^```$/d')
           echo "changelog=$CHANGELOG" >> "$GITHUB_OUTPUT"
 
   sync-notes:
@@ -304,6 +304,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CHANGELOG: ${{ needs.authorize.outputs.changelog }}
         run: |
+          echo $CHANGELOG
+          
           if [ -z "$CHANGELOG" ]; then
             gh issue comment "$ISSUE_NUMBER" --body "❌ Failed to create release tag \`$VERSION\`: No changelog found in the issue description. Make sure the issue has the Markdown block under \`## Changelog\`."
             exit 1
