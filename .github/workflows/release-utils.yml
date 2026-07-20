@@ -99,7 +99,7 @@ jobs:
           fi
           echo "full-version=$FULL_VERSION" >> "$GITHUB_OUTPUT"
           
-          CHANGELOG=$(echo "ISSUE_BODY" | sed -n '/^```markdown$/,/^```$/p' | sed '/^```markdown$/d;/^```$/d')
+          CHANGELOG=$(echo "$ISSUE_BODY" | sed -n '/^```markdown$/,/^```$/p' | sed '/^```markdown$/d;/^```$/d')
           echo "changelog=$CHANGELOG" >> "$GITHUB_OUTPUT"
 
   sync-notes:
