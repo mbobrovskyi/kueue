@@ -435,7 +435,7 @@ jobs:
     needs: authorize
     if: ${{ needs.authorize.outputs.command == 'publish-release' }}
     permissions:
-      contents: read
+      contents: write
       issues: write
     steps:
       - name: Checkout repository
