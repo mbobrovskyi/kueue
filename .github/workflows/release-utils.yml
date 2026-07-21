@@ -342,14 +342,16 @@ jobs:
           RELEASE_STATE: ${{ needs.authorize.outputs.release-state}}
         run: |
           if [ "$RELEASE_STATE" = "published" ]; then
-            BODY="⚠️ Release \`$VERSION\` is already published. Skipping tag creation to avoid overwriting a live tag."
+            BODY="❌ Release \`$VERSION\` is already published."
             echo "$BODY"
             gh issue comment "$ISSUE_NUMBER" --body "$BODY"
-            exit 0
+            exit 1
           fi
           
           if [ -z "$CHANGELOG" ]; then
-            gh issue comment "$ISSUE_NUMBER" --body "❌ Failed to create release tag \`$FULL_VERSION\`: No changelog found in the issue description. Make sure the issue has the Markdown block under \`## Changelog\`."
+            BODY="❌ Failed to create release tag \`$FULL_VERSION\`: No changelog found in the issue description. Make sure the issue has the Markdown block under \`## Changelog\`."
+            echo "$BODY"
+            gh issue comment "$ISSUE_NUMBER" --body "$BODY"
             exit 1
           fi
           
@@ -449,10 +451,10 @@ jobs:
           ACTION="created"
 
           if [ "$RELEASE_STATE" = "published" ]; then
-            BODY="⚠️ Release \`$FULL_VERSION\` is already published. Skipping draft release creation to avoid overwriting a live release."
+            BODY="❌️ Release \`$VERSION\` is already published. Skipping draft release creation to avoid overwriting a live release."
             echo "$BODY"
             gh issue comment "$ISSUE_NUMBER" --body "$BODY"
-            exit 0
+            exit 1
           fi
           
           if [[ "$COMMAND" == "create-draft-release" && "$RELEASE_STATE" == "draft" ]]; then
@@ -600,10 +602,10 @@ jobs:
           RELEASE_STATE: ${{ needs.authorize.outputs.release-state }}
         run: |
           if [ "$RELEASE_STATE" = "published" ]; then
-            BODY="⚠️ Release \`$FULL_VERSION\` is already published."
+            BODY="❌️ Release \`$VERSION\` is already published."
             echo "$BODY"
             gh issue comment "$ISSUE_NUMBER" --body "$BODY"
-            exit 0
+            exit 1
           fi
           
           if [[ "$COMMAND" != "create-release-candidate" && "$RELEASE_STATE" == "draft" ]]; then
