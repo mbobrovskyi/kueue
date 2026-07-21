@@ -20,11 +20,13 @@ jobs:
     outputs:
       command: ${{ steps.parse.outputs.command }}
       version: ${{ steps.parse.outputs.version }}
+      release-state: ${{ steps.parse.outputs.release-state }}
+      # The rc version (e.g., v0.18.0-rc2)
       full-version: ${{ steps.parse.outputs.full-version }}
+      full-release-state: ${{ steps.parse.outputs.full-release-state }}
       branch: ${{ steps.parse.outputs.branch }}
       changelog: ${{ steps.parse.outputs.changelog }}
       target: ${{ steps.parse.outputs.target }}
-      release-state: ${{ steps.parse.outputs.release-state }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -127,6 +129,12 @@ jobs:
           RELEASE_STATE=$(gh release list --repo "$TARGET_REPO" --exclude-drafts=false --json tagName,isDraft 2>/dev/null | \
             jq -r --arg ver "$VERSION" '.[] | select(.tagName == $ver) | if .isDraft then "draft" else "published" end')
           echo "release-state=$RELEASE_STATE" >> "$GITHUB_OUTPUT"
+          
+          if [ "$COMMAND" = "create-release-candidate" ]; then
+            FULL_RELEASE_STATE=$(gh release list --repo "$TARGET_REPO" --exclude-drafts=false --json tagName,isDraft 2>/dev/null | \
+              jq -r --arg ver "$FULL_VERSION" '.[] | select(.tagName == $ver) | if .isDraft then "draft" else "published" end')
+            echo "full-release-state=$FULL_RELEASE_STATE" >> "$GITHUB_OUTPUT"
+          fi
 
   sync-notes:
     name: Sync Release Notes
@@ -319,7 +327,8 @@ jobs:
       - name: Determine checkout ref
         id: checkout-ref
         run: |
-          if [[ "${{ needs.authorize.outputs.command }}" == "create-release-candidate" ]]; then
+          # For `create-release-candidate` we should use main branch.
+          if [[ "$COMMAND" == "create-release-candidate" ]]; then
             echo "ref=main" >> "$GITHUB_OUTPUT"
           else
             echo "ref=${{ needs.authorize.outputs.branch }}" >> "$GITHUB_OUTPUT"
@@ -340,9 +349,17 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CHANGELOG: ${{ needs.authorize.outputs.changelog }}
           RELEASE_STATE: ${{ needs.authorize.outputs.release-state}}
+          FULL_RELEASE_STATE: ${{ needs.authorize.outputs.full-release-state}}
         run: |
           if [ "$RELEASE_STATE" = "published" ]; then
-            BODY="❌ Release \`$VERSION\` is already published."
+            BODY="❌ Release \`$VERSION\` has already been published. Skipping tag creation to avoid overwriting the existing release."
+            echo "$BODY"
+            gh issue comment "$ISSUE_NUMBER" --body "$BODY"
+            exit 1
+          fi
+          
+          if [[ "$COMMAND" == "create-release-candidate" && "$FULL_RELEASE_STATE" = "published" ]]; then
+            BODY="❌ Release \`$FULL_VERSION\` has already been published. Skipping tag creation to avoid overwriting the existing release."
             echo "$BODY"
             gh issue comment "$ISSUE_NUMBER" --body "$BODY"
             exit 1
@@ -416,6 +433,8 @@ jobs:
         (needs.authorize.outputs.command == 'create-draft-release' && needs.tag-release.result == 'skipped') ||
         (needs.authorize.outputs.command == 'create-release-candidate' && needs.tag-release.result == 'success')
       )
+    env:
+      FULL_VERSION: ${{ needs.authorize.outputs.full-version }}
     permissions:
       contents: write
       issues: write
@@ -433,8 +452,6 @@ jobs:
           go-version-file: 'go.mod'
 
       - name: Build Release Artifacts
-        env:
-          FULL_VERSION: ${{ needs.authorize.outputs.full-version }}
         run: |
           make release-artifacts IMAGE_REGISTRY=registry.k8s.io/kueue GIT_TAG="$FULL_VERSION"
 
@@ -442,35 +459,32 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
-          FULL_VERSION: ${{ needs.authorize.outputs.full-version }}
           TARGET_REPO: ${{ github.repository }}
           CHANGELOG: ${{ needs.authorize.outputs.changelog }}
           COMMAND: ${{ needs.authorize.outputs.command }}
           RELEASE_STATE: ${{ needs.authorize.outputs.release-state }}
+          FULL_RELEASE_STATE: ${{ needs.authorize.outputs.full-release-state }}
         run: |
           ACTION="created"
 
-          if [ "$RELEASE_STATE" = "published" ]; then
+          if [[ "$RELEASE_STATE" == "published" ]]; then
             BODY="❌️ Release \`$VERSION\` is already published. Skipping draft release creation to avoid overwriting a live release."
             echo "$BODY"
             gh issue comment "$ISSUE_NUMBER" --body "$BODY"
             exit 1
           fi
           
-          if [[ "$COMMAND" == "create-draft-release" && "$RELEASE_STATE" == "draft" ]]; then
-            ACTION="updated"
+          if [[ "$COMMAND" == "create-release-candidate" && "$FULL_RELEASE_STATE" = "published" ]]; then
+            BODY="❌️ Release \`$FULL_VERSION\` is already published. Skipping draft release creation to avoid overwriting a live release."
+            echo "$BODY"
+            gh issue comment "$ISSUE_NUMBER" --body "$BODY"
+            exit 1
           fi
           
-          FULL_RELEASE_STATE=$(gh release list --repo "$TARGET_REPO" --exclude-drafts=false --json tagName,isDraft 2>/dev/null | \
-            jq -r --arg ver "$FULL_VERSION" '.[] | select(.tagName == $ver) | if .isDraft then "draft" else "published" end')
-          
-          if [[ "$COMMAND" == "create-release-candidate" && "$FULL_RELEASE_STATE" == "draft" ]]; then
-            ACTION="updated"
-          fi
-          
-          if [[ "$ACTION" == "updated" ]]; then
+          if [[ "$RELEASE_STATE" = "draft" || "$FULL_RELEASE_STATE" = "draft" ]]; then
             echo "Draft release \`$FULL_VERSION\` already exists. Deleting it first to perform a clean update..."
             gh release delete "$FULL_VERSION" --repo "$TARGET_REPO" --yes
+            ACTION="updated"
           fi
 
           # Create a draft release.
