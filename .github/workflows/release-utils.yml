@@ -24,6 +24,7 @@ jobs:
       branch: ${{ steps.parse.outputs.branch }}
       changelog: ${{ steps.parse.outputs.changelog }}
       target: ${{ steps.parse.outputs.target }}
+      release-state: ${{ steps.parse.outputs.release-state }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -58,6 +59,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_BODY: ${{ github.event.issue.body }}
+          TARGET_REPO: ${{ github.repository }}
         run: |
           if [[ ! "$TITLE" =~ ^Release\ (v[0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
             gh issue comment "$ISSUE_NUMBER" --body "❌ Invalid issue title: \`$TITLE\`. Expected format: \`Release vX.Y.Z\`."
@@ -121,6 +123,10 @@ jobs:
             printf '%s\n' "$CHANGELOG"
             echo "${EOF_DELIM}"
           } >> "$GITHUB_OUTPUT"
+          
+          RELEASE_STATE=$(gh release list --repo "$TARGET_REPO" --exclude-drafts=false --json tagName,isDraft 2>/dev/null | \
+            jq -r --arg ver "$VERSION" '.[] | select(.tagName == $ver) | if .isDraft then "draft" else "published" end')
+          echo "release-state=$RELEASE_STATE" >> "$GITHUB_OUTPUT"
 
   sync-notes:
     name: Sync Release Notes
@@ -328,11 +334,20 @@ jobs:
 
       - name: Create and Push Tag
         env:
+          VERSION: ${{ needs.authorize.outputs.version }}
           FULL_VERSION: ${{ needs.authorize.outputs.full-version }}
           ISSUE_BODY: ${{ github.event.issue.body }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CHANGELOG: ${{ needs.authorize.outputs.changelog }}
+          RELEASE_STATE: ${{ needs.authorize.outputs.release-state}}
         run: |
+          if [ "$RELEASE_STATE" = "published" ]; then
+            BODY="⚠️ Release \`$VERSION\` is already published. Skipping tag creation to avoid overwriting a live tag."
+            echo "$BODY"
+            gh issue comment "$ISSUE_NUMBER" --body "$BODY"
+            exit 0
+          fi
+          
           if [ -z "$CHANGELOG" ]; then
             gh issue comment "$ISSUE_NUMBER" --body "❌ Failed to create release tag \`$FULL_VERSION\`: No changelog found in the issue description. Make sure the issue has the Markdown block under \`## Changelog\`."
             exit 1
@@ -429,22 +444,31 @@ jobs:
           TARGET_REPO: ${{ github.repository }}
           CHANGELOG: ${{ needs.authorize.outputs.changelog }}
           COMMAND: ${{ needs.authorize.outputs.command }}
+          RELEASE_STATE: ${{ needs.authorize.outputs.release-state }}
         run: |
           ACTION="created"
-
-          # Check if a release for this version already exists (draft or published).
-          RELEASE_STATE=$(gh release list --repo "$TARGET_REPO" --exclude-drafts=false --json tagName,isDraft 2>/dev/null | \
-            jq -r --arg ver "$FULL_VERSION" '.[] | select(.tagName == $ver) | if .isDraft then "draft" else "published" end')
 
           if [ "$RELEASE_STATE" = "published" ]; then
             BODY="⚠️ Release \`$FULL_VERSION\` is already published. Skipping draft release creation to avoid overwriting a live release."
             echo "$BODY"
             gh issue comment "$ISSUE_NUMBER" --body "$BODY"
             exit 0
-          elif [ "$RELEASE_STATE" = "draft" ]; then
+          fi
+          
+          if [[ "$COMMAND" == "create-draft-release" && "$RELEASE_STATE" == "draft" ]]; then
+            ACTION="updated"
+          fi
+          
+          FULL_RELEASE_STATE=$(gh release list --repo "$TARGET_REPO" --exclude-drafts=false --json tagName,isDraft 2>/dev/null | \
+            jq -r --arg ver "$FULL_VERSION" '.[] | select(.tagName == $ver) | if .isDraft then "draft" else "published" end')
+          
+          if [[ "$COMMAND" == "create-release-candidate" && "$FULL_RELEASE_STATE" == "draft" ]]; then
+            ACTION="updated"
+          fi
+          
+          if [[ "$ACTION" == "updated" ]]; then
             echo "Draft release \`$FULL_VERSION\` already exists. Deleting it first to perform a clean update..."
             gh release delete "$FULL_VERSION" --repo "$TARGET_REPO" --yes
-            ACTION="updated"
           fi
 
           # Create a draft release.
@@ -573,18 +597,17 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           FULL_VERSION: ${{ needs.authorize.outputs.full-version }}
           COMMAND: ${{ needs.authorize.outputs.command }}
+          RELEASE_STATE: ${{ needs.authorize.outputs.release-state }}
         run: |
-          # Check the current state of the release.
-          RELEASE_STATE=$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts=false --json tagName,isDraft 2>/dev/null | \
-            jq -r --arg ver "$FULL_VERSION" '.[] | select(.tagName == $ver) | if .isDraft then "draft" else "published" end')
-
           if [ "$RELEASE_STATE" = "published" ]; then
             BODY="⚠️ Release \`$FULL_VERSION\` is already published."
             echo "$BODY"
             gh issue comment "$ISSUE_NUMBER" --body "$BODY"
             exit 0
-          elif [ -z "$RELEASE_STATE" ]; then
-            BODY="❌ Release \`$FULL_VERSION\` not found. Please create a draft release first using \`/create-draft-release\`."
+          fi
+          
+          if [[ "$COMMAND" != "create-release-candidate" && "$RELEASE_STATE" == "draft" ]]; then
+            BODY="❌ Release \`$VERSION\` not found. Please create a draft release first using \`/create-draft-release\`."
             echo "$BODY"
             gh issue comment "$ISSUE_NUMBER" --body "$BODY"
             exit 1
