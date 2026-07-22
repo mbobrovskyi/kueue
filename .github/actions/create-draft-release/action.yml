@@ -1,12 +1,12 @@
-name: Create Draft Release
-description: Creates (or recreates) a GitHub draft release for the given version tag.
+name: Create Release Tag
+description: Validates the changelog, creates an annotated git tag from the changelog, and pushes it to origin.
 
 inputs:
   version:
-    description: Release version tag (e.g. v0.10.0)
+    description: Release version (e.g. v0.10.0)
     required: true
   changelog:
-    description: Release notes / changelog content
+    description: Changelog content used as the tag annotation body
     required: true
   issue-number:
     description: GitHub issue number used for posting status comments
@@ -15,81 +15,86 @@ inputs:
     description: Target repository in owner/name format
     required: false
     default: ${{ github.repository }}
-  prerelease:
-    description: Mark the release as a pre-release
-    required: false
-    default: "false"
   github-token:
     description: GitHub token with contents:write and issues:write permissions
     required: true
 
 outputs:
   action:
-    description: What happened to the release — "created" or "updated"
-    value: ${{ steps.draft.outputs.action }}
+    description: What happened to the tag — "created" or "updated"
+    value: ${{ steps.tag.outputs.action }}
 
 runs:
   using: composite
   steps:
-    - name: Create Draft Release
-      id: draft
+    - name: Create and Push Tag
+      id: tag
       shell: bash
       env:
-        GH_TOKEN: ${{ inputs.github-token }}
         VERSION: ${{ inputs.version }}
         CHANGELOG: ${{ inputs.changelog }}
         ISSUE_NUMBER: ${{ inputs.issue-number }}
         TARGET_REPO: ${{ inputs.repo }}
-        PRERELEASE: ${{ inputs.prerelease }}
+        GH_TOKEN: ${{ inputs.github-token }}
       run: |
         RELEASE_STATE=$(gh release view "$VERSION" --repo "$TARGET_REPO" --json isDraft \
             --jq 'if .isDraft then "draft" else "published" end' 2>/dev/null || echo "")
         
         if [ "$RELEASE_STATE" = "published" ]; then
-          BODY="❌️ Release \`$VERSION\` is already published. Skipping draft release creation/update to avoid overwriting a live release."
+          BODY="❌ Release \`$VERSION\` is already published. Skipping tag creation/update to avoid overwriting a live release."
           echo "$BODY"
           gh issue comment "$ISSUE_NUMBER" --body "$BODY"
           exit 1
-        elif [ "$RELEASE_STATE" = "draft" ]; then
-          echo "Draft release \`$VERSION\` already exists. Deleting it first to perform a clean update..."
-          gh release delete "$VERSION" --repo "$TARGET_REPO" --yes
-          ACTION="updated"
-        else
-          ACTION="created"
         fi
         
-        make release-artifacts IMAGE_REGISTRY=registry.k8s.io/kueue GIT_TAG="$VERSION"
+        if [ -z "$CHANGELOG" ]; then
+          gh issue comment "$ISSUE_NUMBER" --body "❌ Failed to create release tag \`$VERSION\`: No changelog found in the issue description. Make sure the issue has the Markdown block under \`## Changelog\`."
+          exit 1
+        fi
 
-        # Create a draft release.
+        # Prepare tag message
+        NOTES_FILE=$(mktemp)
+        printf "%s\n\n%s\n" "$VERSION" "$CHANGELOG" > "$NOTES_FILE"
+
+        # Configure git identity
+        git config --global user.name "kueue-release-bot"
+        git config --global user.email "kueue-release-bot@kubernetes.io"
+        gh auth setup-git
+
+        # Clear existing tag
+        TAG_EXISTS=false
+        if git tag -l | grep -q "^${VERSION}$" || git ls-remote --tags origin "$VERSION" | grep -q "refs/tags/${VERSION}$"; then
+          TAG_EXISTS=true
+          git tag -d "$VERSION" 2>/dev/null || true
+          git push origin --delete "$VERSION" 2>/dev/null || true
+        fi
+
+        # Create and push the tag
+        PUSH_EXIT=0
         set +e
-        echo "Creating \`$VERSION\` release."
-        
-        PRERELEASE_FLAG=""
-        if [ "$PRERELEASE" = "true" ]; then
-          PRERELEASE_FLAG="--prerelease"
+        git tag -a "$VERSION" -F "$NOTES_FILE" 2> err.log
+        TAG_EXIT=$?
+        if [ $TAG_EXIT -eq 0 ]; then
+          git push origin "$VERSION" 2>> err.log
+          PUSH_EXIT=$?
         fi
-
-        gh release create "$VERSION" \
-          --verify-tag \
-          --repo "$TARGET_REPO" \
-          --title "$VERSION" \
-          --notes "$CHANGELOG" \
-          --draft \
-          $PRERELEASE_FLAG \
-          release-artifacts/* 2> err.log
-        RELEASE_EXIT=$?
         set -e
+        rm -f "$NOTES_FILE"
 
-        if [ $RELEASE_EXIT -ne 0 ]; then
-          ERR_MSG="$(cat err.log)"
-          echo "$ERR_MSG"
-          gh issue comment "$ISSUE_NUMBER" --body "❌ Failed to create draft release \`$VERSION\`.
+        if [ $TAG_EXIT -ne 0 ] || [ $PUSH_EXIT -ne 0 ]; then
+          ERR_MSG=$(cat err.log)
+          gh issue comment "$ISSUE_NUMBER" --body "❌ Failed to create or push release tag \`$VERSION\`.
 
           **Error details:**
           \`\`\`text
           ${ERR_MSG}
           \`\`\`"
           exit 1
+        fi
+
+        ACTION="created"
+        if [ "$TAG_EXISTS" = "true" ]; then
+          ACTION="updated"
         fi
 
         echo "action=$ACTION" >> "$GITHUB_OUTPUT"
