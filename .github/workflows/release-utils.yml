@@ -180,8 +180,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TARGET_REPO: ${{ github.repository }}
         run: |
-          RELEASE_STATE=$(gh release list --repo "$TARGET_REPO" --exclude-drafts=false --json tagName,isDraft 2>/dev/null | \
-            jq -r --arg ver "$VERSION" '.[] | select(.tagName == $ver) | if .isDraft then "draft" else "published" end')
+          RELEASE_STATE=$(gh release view "$VERSION" --repo "$TARGET_REPO" --json isDraft \
+            --jq 'if .isDraft then "draft" else "published" end' 2>/dev/null || echo "")
 
           if [ "$RELEASE_STATE" = "published" ]; then
             BODY="❌ Release \`$VERSION\` has already been published. Skipping release candidate creation."
@@ -195,7 +195,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          LAST_RC=$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts=true --json tagName --jq '.[].tagName' \
+          LAST_RC=$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts=true --limit 1000 --json tagName --jq '.[].tagName' \
             | grep -oP "(?<=${VERSION}-rc\.)\d+" | sort -n | tail -1)
           if [ -z "$LAST_RC" ]; then
             NEXT_RC=0
