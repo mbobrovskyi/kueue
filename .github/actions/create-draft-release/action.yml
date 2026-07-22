@@ -42,8 +42,8 @@ runs:
         TARGET_REPO: ${{ inputs.repo }}
         PRERELEASE: ${{ inputs.prerelease }}
       run: |
-        RELEASE_STATE=$(gh release list --repo "$TARGET_REPO" --exclude-drafts=false --json tagName,isDraft 2>/dev/null | \
-            jq -r --arg ver "$VERSION" '.[] | select(.tagName == $ver) | if .isDraft then "draft" else "published" end')
+        RELEASE_STATE=$(gh release view "$VERSION" --repo "$TARGET_REPO" --json isDraft \
+            --jq 'if .isDraft then "draft" else "published" end' 2>/dev/null || echo "")
         
         if [ "$RELEASE_STATE" = "published" ]; then
           BODY="❌️ Release \`$VERSION\` is already published. Skipping draft release creation/update to avoid overwriting a live release."
