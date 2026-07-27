@@ -918,6 +918,7 @@ func TestFindAncestorJobManagedByKueue(t *testing.T) {
 				return job
 			}(),
 			wantManaged: nil,
+			wantEvents:  []utiltesting.EventRecord{},
 		},
 		"Pod -> ReplicaSet -> Deployment (queue-name) => Deployment": {
 			integrations: []string{"pod", "deployment"},
@@ -966,7 +967,7 @@ func TestFindAncestorJobManagedByKueue(t *testing.T) {
 			if diff := cmp.Diff(tc.wantErr, gotErr, cmpopts.EquateErrors()); len(diff) != 0 {
 				t.Errorf("Unexpected error (-want,+got):\n%s", diff)
 			}
-			if diff := cmp.Diff(tc.wantEvents, recorder.RecordedEvents); diff != "" {
+			if diff := cmp.Diff(tc.wantEvents, recorder.RecordedEvents, cmpopts.EquateEmpty()); diff != "" {
 				t.Errorf("Unexpected events (-want/+got):\n%s", diff)
 			}
 		})

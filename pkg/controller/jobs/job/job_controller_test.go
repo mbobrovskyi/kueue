@@ -3252,24 +3252,16 @@ func TestReconciler(t *testing.T) {
 
 				features.AssignQueueLabelsForPods: true,
 			},
-			job: func() *batchv1.Job {
-				j := baseJobWrapper.
-					Clone().
-					OwnerReference("parent", batchv1.SchemeGroupVersion.WithKind("Job")).
-					Suspend(false).
-					Obj()
-				j.OwnerReferences[0].UID = "parent-uid"
-				return j
-			}(),
-			wantJob: func() batchv1.Job {
-				j := baseJobWrapper.
-					Clone().
-					OwnerReference("parent", batchv1.SchemeGroupVersion.WithKind("Job")).
-					Suspend(false).
-					Obj()
-				j.OwnerReferences[0].UID = "parent-uid"
-				return *j
-			}(),
+			job: baseJobWrapper.
+				Clone().
+				OwnerReferenceWithUID("parent", batchv1.SchemeGroupVersion.WithKind("Job"), "parent-uid").
+				Suspend(false).
+				Obj(),
+			wantJob: *baseJobWrapper.
+				Clone().
+				OwnerReferenceWithUID("parent", batchv1.SchemeGroupVersion.WithKind("Job"), "parent-uid").
+				Suspend(false).
+				Obj(),
 			otherJobs: []batchv1.Job{
 				*utiltestingjob.MakeJob("parent", "ns").
 					Queue("queue").
@@ -3303,23 +3295,15 @@ func TestReconciler(t *testing.T) {
 				jobframework.WithManageJobsWithoutQueueName(true),
 				jobframework.WithManagedJobsNamespaceSelector(labels.Everything()),
 			},
-			job: func() *batchv1.Job {
-				j := baseJobWrapper.
-					Clone().
-					OwnerReference("parent", batchv1.SchemeGroupVersion.WithKind("Job")).
-					Suspend(false).
-					Obj()
-				j.OwnerReferences[0].UID = "parent-uid"
-				return j
-			}(),
-			wantJob: func() batchv1.Job {
-				j := baseJobWrapper.
-					Clone().
-					OwnerReference("parent", batchv1.SchemeGroupVersion.WithKind("Job")).
-					Obj()
-				j.OwnerReferences[0].UID = "parent-uid"
-				return *j
-			}(),
+			job: baseJobWrapper.
+				Clone().
+				OwnerReferenceWithUID("parent", batchv1.SchemeGroupVersion.WithKind("Job"), "parent-uid").
+				Suspend(false).
+				Obj(),
+			wantJob: *baseJobWrapper.
+				Clone().
+				OwnerReferenceWithUID("parent", batchv1.SchemeGroupVersion.WithKind("Job"), "parent-uid").
+				Obj(),
 			otherJobs: []batchv1.Job{
 				*utiltestingjob.MakeJob("parent", "ns").
 					Queue("queue").
@@ -3355,26 +3339,18 @@ func TestReconciler(t *testing.T) {
 
 				features.AssignQueueLabelsForPods: true,
 			},
-			job: func() *batchv1.Job {
-				j := baseJobWrapper.
-					Clone().
-					Suspend(false).
-					OwnerReference("parent", batchv1.SchemeGroupVersion.WithKind("Job")).
-					Queue("test-queue").
-					Obj()
-				j.OwnerReferences[0].UID = "parent-uid"
-				return j
-			}(),
-			wantJob: func() batchv1.Job {
-				j := baseJobWrapper.
-					Clone().
-					Suspend(false).
-					OwnerReference("parent", batchv1.SchemeGroupVersion.WithKind("Job")).
-					Queue("test-queue").
-					Obj()
-				j.OwnerReferences[0].UID = "parent-uid"
-				return *j
-			}(),
+			job: baseJobWrapper.
+				Clone().
+				Suspend(false).
+				OwnerReferenceWithUID("parent", batchv1.SchemeGroupVersion.WithKind("Job"), "parent-uid").
+				Queue("test-queue").
+				Obj(),
+			wantJob: *baseJobWrapper.
+				Clone().
+				Suspend(false).
+				OwnerReferenceWithUID("parent", batchv1.SchemeGroupVersion.WithKind("Job"), "parent-uid").
+				Queue("test-queue").
+				Obj(),
 			otherJobs: []batchv1.Job{
 				*utiltestingjob.MakeJob("parent", "ns").
 					UID("parent-uid").
