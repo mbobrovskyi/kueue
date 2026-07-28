@@ -55,6 +55,7 @@ import (
 	"sigs.k8s.io/kueue/pkg/util/testingjobs/paddlejob"
 	testingpod "sigs.k8s.io/kueue/pkg/util/testingjobs/pod"
 	testingpytorchjob "sigs.k8s.io/kueue/pkg/util/testingjobs/pytorchjob"
+	testingreplicaset "sigs.k8s.io/kueue/pkg/util/testingjobs/replicaset"
 	testingtfjob "sigs.k8s.io/kueue/pkg/util/testingjobs/tfjob"
 	testingxgboostjob "sigs.k8s.io/kueue/pkg/util/testingjobs/xgboostjob"
 
@@ -70,6 +71,9 @@ func TestDefault(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to generate expected role hash: %v", err)
 	}
+	// preservedParentRoleHash is the role-hash set by a parent-managed pod; the webhook
+	// preserves it without recomputation from the pod spec.
+	const preservedParentRoleHash = "leader"
 	defaultNamespaceSelector := &metav1.LabelSelector{
 		MatchExpressions: []metav1.LabelSelectorRequirement{
 			{
@@ -160,25 +164,15 @@ func TestDefault(t *testing.T) {
 					UID("parent-deployment").
 					Queue("test-queue").
 					Obj(),
-				&appsv1.ReplicaSet{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "parent-replicaset",
-						Namespace: defaultNamespace.Name,
-						UID:       "parent-replicaset",
-						OwnerReferences: []metav1.OwnerReference{{
-							Name:       "parent-deployment",
-							APIVersion: appsv1.SchemeGroupVersion.String(),
-							Kind:       "Deployment",
-							UID:        "parent-deployment",
-							Controller: new(true),
-						}},
-					},
-				},
+				testingreplicaset.MakeReplicaSet("parent-replicaset", defaultNamespace.Name).
+					UID("parent-replicaset").
+					ControllerOwnerReference("parent-deployment", appsv1.SchemeGroupVersion.String(), "Deployment", "parent-deployment").
+					Obj(),
 			},
 			pod: testingpod.MakePod("test-pod", defaultNamespace.Name).
 				SuspendedByParent(kueuedeployment.FrameworkName).
 				Queue("test-queue").
-				RoleHash("leader").
+				RoleHash(preservedParentRoleHash).
 				OwnerReference("parent-replicaset", appsv1.SchemeGroupVersion.WithKind("ReplicaSet")).
 				Obj(),
 			enableIntegrations: []string{kueuedeployment.FrameworkName},
@@ -186,7 +180,7 @@ func TestDefault(t *testing.T) {
 				SuspendedByParent(kueuedeployment.FrameworkName).
 				Queue("test-queue").
 				KueueSchedulingGate().
-				RoleHash("leader").
+				RoleHash(preservedParentRoleHash).
 				OwnerReference("parent-replicaset", appsv1.SchemeGroupVersion.WithKind("ReplicaSet")).
 				Obj(),
 		},
@@ -222,20 +216,10 @@ func TestDefault(t *testing.T) {
 					UID("parent-deployment").
 					Queue("test-queue").
 					Obj(),
-				&appsv1.ReplicaSet{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "parent-replicaset",
-						Namespace: defaultNamespace.Name,
-						UID:       "parent-replicaset",
-						OwnerReferences: []metav1.OwnerReference{{
-							Name:       "parent-deployment",
-							APIVersion: appsv1.SchemeGroupVersion.String(),
-							Kind:       "Deployment",
-							UID:        "parent-deployment",
-							Controller: new(true),
-						}},
-					},
-				},
+				testingreplicaset.MakeReplicaSet("parent-replicaset", defaultNamespace.Name).
+					UID("parent-replicaset").
+					ControllerOwnerReference("parent-deployment", appsv1.SchemeGroupVersion.String(), "Deployment", "parent-deployment").
+					Obj(),
 			},
 			pod: testingpod.MakePod("test-pod", defaultNamespace.Name).
 				SuspendedByParent(kueuedeployment.FrameworkName).
@@ -260,21 +244,10 @@ func TestDefault(t *testing.T) {
 					UID("parent-deployment").
 					Queue("test-queue").
 					Obj(),
-				&appsv1.ReplicaSet{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "parent-replicaset",
-						Namespace: defaultNamespace.Name,
-						UID:       "parent-replicaset",
-						OwnerReferences: []metav1.OwnerReference{{
-							Name:       "parent-deployment",
-							APIVersion: appsv1.SchemeGroupVersion.String(),
-							Kind:       "Deployment",
-							// Forged UID; real parent-deployment has UID "parent-deployment".
-							UID:        "forged-deployment-uid",
-							Controller: new(true),
-						}},
-					},
-				},
+				testingreplicaset.MakeReplicaSet("parent-replicaset", defaultNamespace.Name).
+					UID("parent-replicaset").
+					ControllerOwnerReference("parent-deployment", appsv1.SchemeGroupVersion.String(), "Deployment", "forged-deployment-uid").
+					Obj(),
 			},
 			pod: testingpod.MakePod("test-pod", defaultNamespace.Name).
 				SuspendedByParent(kueuedeployment.FrameworkName).

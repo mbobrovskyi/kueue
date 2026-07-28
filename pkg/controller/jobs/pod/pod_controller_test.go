@@ -30,6 +30,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -386,6 +387,34 @@ func TestConstructGroupPodSets(t *testing.T) {
 					Obj(),
 			},
 		},
+		"uses element-wise max for incomparable pod requests": {
+			pods: []corev1.Pod{
+				*testingpod.MakePod("pod-cpu", "ns").
+					Image("", nil).
+					Request(corev1.ResourceCPU, "2").
+					RoleHash(string(podSetRole)).
+					Obj(),
+				*testingpod.MakePod("pod-mixed", "ns").
+					Image("", nil).
+					Request(corev1.ResourceCPU, "1").
+					Request(corev1.ResourceMemory, "1Gi").
+					RoleHash(string(podSetRole)).
+					Obj(),
+			},
+			wantPodSets: func() []kueue.PodSet {
+				wantPod := testingpod.MakePod("pod", "ns").
+					Image("", nil).
+					Request(corev1.ResourceCPU, "2").
+					Request(corev1.ResourceMemory, "1Gi").
+					RoleHash(string(podSetRole)).
+					Obj()
+				return []kueue.PodSet{
+					*utiltestingapi.MakePodSet(podSetRole, 2).
+						PodSpec(wantPod.Spec).
+						Obj(),
+				}
+			}(),
+		},
 	}
 
 	for name, tc := range testCases {
@@ -459,6 +488,35 @@ func TestConstructGroupPodSetsFast(t *testing.T) {
 					Obj(),
 			},
 		},
+		"uses element-wise max for incomparable pod requests": {
+			pods: []corev1.Pod{
+				*testingpod.MakePod("pod-cpu", "ns").
+					Image("", nil).
+					Request(corev1.ResourceCPU, "2").
+					RoleHash(string(podSetRole)).
+					Obj(),
+				*testingpod.MakePod("pod-mixed", "ns").
+					Image("", nil).
+					Request(corev1.ResourceCPU, "1").
+					Request(corev1.ResourceMemory, "1Gi").
+					RoleHash(string(podSetRole)).
+					Obj(),
+			},
+			groupTotalCount: 2,
+			wantPodSets: func() []kueue.PodSet {
+				wantPod := testingpod.MakePod("pod", "ns").
+					Image("", nil).
+					Request(corev1.ResourceCPU, "2").
+					Request(corev1.ResourceMemory, "1Gi").
+					RoleHash(string(podSetRole)).
+					Obj()
+				return []kueue.PodSet{
+					*utiltestingapi.MakePodSet(podSetRole, 2).
+						PodSpec(wantPod.Spec).
+						Obj(),
+				}
+			}(),
+		},
 		"rejects pods with diverging roles": {
 			pods: []corev1.Pod{
 				*basePod.DeepCopy(),
@@ -470,6 +528,60 @@ func TestConstructGroupPodSetsFast(t *testing.T) {
 			},
 			groupTotalCount: 2,
 			wantErrMessage:  errFastAdmissionRoleMismatch("pod-2", "role-b", "role-a").Error(),
+		},
+		"uses per-container element-wise max for multi-container pods": {
+			pods: func() []corev1.Pod {
+				podA := testingpod.MakePod("pod-a", "ns").
+					Image("", nil).
+					RoleHash(string(podSetRole)).
+					Obj()
+				podA.Spec.Containers = append(podA.Spec.Containers, corev1.Container{
+					Name:  "sidecar",
+					Image: podA.Spec.Containers[0].Image,
+					Resources: corev1.ResourceRequirements{
+						Requests: corev1.ResourceList{},
+					},
+				})
+				podA.Spec.Containers[0].Resources.Requests[corev1.ResourceCPU] = resource.MustParse("2")
+				podA.Spec.Containers[1].Resources.Requests[corev1.ResourceCPU] = resource.MustParse("500m")
+
+				podB := testingpod.MakePod("pod-b", "ns").
+					Image("", nil).
+					RoleHash(string(podSetRole)).
+					Obj()
+				podB.Spec.Containers = append(podB.Spec.Containers, corev1.Container{
+					Name:  "sidecar",
+					Image: podB.Spec.Containers[0].Image,
+					Resources: corev1.ResourceRequirements{
+						Requests: corev1.ResourceList{},
+					},
+				})
+				podB.Spec.Containers[0].Resources.Requests[corev1.ResourceCPU] = resource.MustParse("1")
+				podB.Spec.Containers[1].Resources.Requests[corev1.ResourceCPU] = resource.MustParse("1")
+
+				return []corev1.Pod{*podA, *podB}
+			}(),
+			groupTotalCount: 2,
+			wantPodSets: func() []kueue.PodSet {
+				wantPod := testingpod.MakePod("pod", "ns").
+					Image("", nil).
+					RoleHash(string(podSetRole)).
+					Obj()
+				wantPod.Spec.Containers = append(wantPod.Spec.Containers, corev1.Container{
+					Name:  "sidecar",
+					Image: wantPod.Spec.Containers[0].Image,
+					Resources: corev1.ResourceRequirements{
+						Requests: corev1.ResourceList{},
+					},
+				})
+				wantPod.Spec.Containers[0].Resources.Requests[corev1.ResourceCPU] = resource.MustParse("2")
+				wantPod.Spec.Containers[1].Resources.Requests[corev1.ResourceCPU] = resource.MustParse("1")
+				return []kueue.PodSet{
+					*utiltestingapi.MakePodSet(podSetRole, 2).
+						PodSpec(wantPod.Spec).
+						Obj(),
+				}
+			}(),
 		},
 	}
 
@@ -544,8 +656,16 @@ func TestReconciler(t *testing.T) {
 		Request(corev1.ResourceCPU, "1").
 		Image("", nil)
 
-	// forgedRoleHash is a pod-forged RoleHash matching the workload PodSet name.
+	legitRoleHash, err := utilpod.GenerateRoleHash(&basePodWrapper.Obj().Spec)
+	if err != nil {
+		t.Fatalf("failed to generate legit role hash: %v", err)
+	}
+	// forgedRoleHash is an attacker-chosen value matching a pre-created workload PodSet
+	// name, NOT derived from the pod spec.
 	forgedRoleHash := "dc85db45"
+	if legitRoleHash != forgedRoleHash {
+		t.Fatalf("test setup: legitRoleHash %q != forgedRoleHash %q for base pod", legitRoleHash, forgedRoleHash)
+	}
 
 	testCases := map[string]struct {
 		reconcileKey           *types.NamespacedName
@@ -1665,6 +1785,12 @@ func TestReconciler(t *testing.T) {
 					).
 					Queue(localUserQueueName).
 					Priority(0).
+					Condition(metav1.Condition{
+						Type:    WorkloadComposeRejected,
+						Status:  metav1.ConditionTrue,
+						Reason:  jobframework.ReasonErrWorkloadCompose,
+						Message: fmt.Sprintf(`Pod requests exceed the resources reserved for role %q in workload "test-group"; this pod group cannot be admitted`, forgedRoleHash),
+					}).
 					Obj(),
 			},
 			workloadCmpOpts: defaultWorkloadCmpOpts,
