@@ -1156,11 +1156,8 @@ func PropagateAdmissionGatedByAnnotation(obj client.Object, wl *kueue.Workload) 
 
 // UpdateWorkloadPriority updates workload priority if object's kueue.x-k8s.io/priority-class label changed.
 func UpdateWorkloadPriority(ctx context.Context, c client.Client, r events.EventRecorder, obj client.Object, wl *kueue.Workload, customPriorityClassFunc func() string) error {
-	jobPriorityClassName := WorkloadPriorityClassName(obj)
-	wlPriorityClassName := workloadpatching.PriorityClassName(wl)
-
 	// This handles both: changing priority (old -> new) AND adding priority (none -> new)
-	if (workload.HasNoPriority(wl) || workload.IsWorkloadPriorityClass(wl)) && jobPriorityClassName != wlPriorityClassName {
+	if IsWorkloadPriorityUpdateNeeded(obj, wl) {
 		if err := PrepareWorkloadPriority(ctx, c, obj, wl, customPriorityClassFunc); err != nil {
 			return fmt.Errorf("prepare workload priority: %w", err)
 		}
@@ -1175,6 +1172,12 @@ func UpdateWorkloadPriority(ctx context.Context, c client.Client, r events.Event
 		)
 	}
 	return nil
+}
+
+// IsWorkloadPriorityUpdateNeeded indicates whether UpdateWorkloadPriority will update the Workload.
+func IsWorkloadPriorityUpdateNeeded(obj client.Object, wl *kueue.Workload) bool {
+	return (workload.HasNoPriority(wl) || workload.IsWorkloadPriorityClass(wl)) &&
+		WorkloadPriorityClassName(obj) != workloadpatching.PriorityClassName(wl)
 }
 
 func FindMatchingWorkloads(ctx context.Context, c client.Client, job GenericJob) (match *kueue.Workload, toDelete []*kueue.Workload, err error) {

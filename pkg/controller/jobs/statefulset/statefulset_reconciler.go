@@ -255,7 +255,12 @@ func (r *Reconciler) reconcileWorkload(ctx context.Context, sts *appsv1.Stateful
 		shouldUpdate = gateUpdated || shouldUpdate
 	}
 
-	if shouldUpdate {
+	priorityUpdated := jobframework.IsWorkloadPriorityUpdateNeeded(sts, wl)
+	if err := jobframework.UpdateWorkloadPriority(ctx, r.client, r.record, sts, wl, nil); err != nil {
+		return err
+	}
+
+	if shouldUpdate && !priorityUpdated {
 		if err := r.client.Update(ctx, wl); err != nil {
 			return err
 		}
