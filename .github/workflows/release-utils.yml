@@ -262,6 +262,16 @@ jobs:
           repo: ${{ github.repository }}
           prerelease: true
 
+      - name: Generate OpenVEX
+        uses: ./.github/actions/generate-openvex
+        with:
+          tag: ${{ steps.rc-version.outputs.version }}
+
+      - name: Generate SBOM
+        uses: ./.github/actions/generate-sbom
+        with:
+          tag: ${{ steps.rc-version.outputs.version }}
+
       - name: Publish Release
         id: publish
         uses: ./.github/actions/publish-release
@@ -537,6 +547,16 @@ jobs:
           changelog: ${{ needs.authorize.outputs.changelog }}
           repo: ${{ github.repository }}
           prerelease: false
+
+      - name: Generate OpenVEX
+        uses: ./.automation/.github/actions/generate-openvex
+        with:
+          tag: ${{ needs.authorize.outputs.version }}
+
+      - name: Generate SBOM
+        uses: ./.automation/.github/actions/generate-sbom
+        with:
+          tag: ${{ needs.authorize.outputs.version }}
 
       - name: Report Success
         if: ${{ success() }}
