@@ -1,0 +1,26 @@
+name: Generate SBOM
+description: Generates an SPDX SBOM and uploads it to the GitHub release.
+
+inputs:
+  tag:
+    description: Release tag (e.g. v0.20.0)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      with:
+        go-version-file: go.mod
+        check-latest: true
+        cache: true
+    - name: Install bom
+      uses: kubernetes-sigs/release-actions/setup-bom@c130b4494862d330a1aa4de320076c666d0708da # v0.4.4
+    - name: Generate SBOM
+      shell: bash
+      run: bom generate --format=json -o /tmp/kueue-${{ inputs.tag }}.spdx.json .
+    - name: Upload SBOM
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: gh release upload ${{ inputs.tag }} /tmp/kueue-${{ inputs.tag }}.spdx.json
