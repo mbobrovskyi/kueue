@@ -1,5 +1,5 @@
 .github/workflows/OWNERS
-  h_47cee5fa694435 3-5,8-11
+  h_47cee5fa694435 3-5,6-7,8-11
   h_47cee5fa694435 6-7
 .github/actions/create-draft-release/OWNERS
   h_47cee5fa694435 1-4
