@@ -19,4 +19,4 @@ runs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
         TAG: ${{ inputs.tag }}
-      run: gh release upload "$TAG" /tmp/kueue.vex.json --clobber
+      run: gh release upload "$TAG" /tmp/kueue.vex.json
