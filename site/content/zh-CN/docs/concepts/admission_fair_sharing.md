@@ -12,7 +12,7 @@ description: >
 `AdmissionFairSharing` 目前是一个 Alpha 特性，默认未启用。
 
 您可以通过编辑 `AdmissionFairSharing` 特性门控来启用它。有关特性门控配置的详细信息，
-请查阅 [安装指南](/docs/installation/#change-the-feature-gates-configuration)。
+请查阅 [安装指南](/zh-cn/docs/installation/#change-the-feature-gates-configuration)。
 {{% /alert %}}
 
 

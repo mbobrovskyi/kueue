@@ -8,9 +8,9 @@ description: >
 ---
 
 此页面展示了如何设置 Prometheus 以抓取 Kueue 指标。
-对于使用 TLS 保护的指标端点，请参阅[使用 TLS 配置 Prometheus](/docs/tasks/manage/productization/prometheus)。
+对于使用 TLS 保护的指标端点，请参阅[使用 TLS 配置 Prometheus](/zh-cn/docs/tasks/manage/productization/prometheus)。
 
-本页面适用于[批处理管理员](/docs/tasks#batch-administrator)。
+本页面适用于[批处理管理员](/zh-cn/docs/tasks#batch-administrator)。
 
 ## 开始之前
 
@@ -18,7 +18,7 @@ description: >
 
 - Kubernetes 集群正在运行。
 - kubectl 命令行工具可以与你的集群通信。
-- [Kueue 已安装](/docs/installation)。
+- [Kueue 已安装](/zh-cn/docs/installation)。
 - Prometheus Operator 已[安装](https://prometheus-operator.dev/docs/getting-started/installation/)。
 
 ## 1. 设置
@@ -102,13 +102,13 @@ data:
 kubectl rollout restart deployment/kueue-controller-manager -n kueue-system
 ```
 
-参阅 [Prometheus 指标](/docs/reference/metrics#optional-metrics)获取可选指标的完整列表。
+参阅 [Prometheus 指标](/zh-cn/docs/reference/metrics#optional-metrics)获取可选指标的完整列表。
 
 ## 接下来是什么
 
-- 参阅[常用 Grafana 查询](/docs/tasks/manage/observability/common_grafana_queries)
+- 参阅[常用 Grafana 查询](/zh-cn/docs/tasks/manage/observability/common_grafana_queries)
   获取用于在 Grafana 中监控 Kueue 的 PromQL 查询。
-- 参阅[使用 TLS 配置 Prometheus](/docs/tasks/manage/productization/prometheus)
+- 参阅[使用 TLS 配置 Prometheus](/zh-cn/docs/tasks/manage/productization/prometheus)
   获取使用 cert-manager 进行高级 TLS 配置的信息。
-- 参阅[设置开发监控](/docs/tasks/dev/setup_dev_monitoring)获取带有
+- 参阅[设置开发监控](/zh-cn/docs/tasks/dev/setup_dev_monitoring)获取带有
   Prometheus 的本地开发环境设置指南。

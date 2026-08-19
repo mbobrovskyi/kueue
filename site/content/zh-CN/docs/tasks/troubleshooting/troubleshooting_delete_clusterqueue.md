@@ -23,7 +23,7 @@ kubectl delete clusterqueue my-cq
 
 ## 为什么会发生这种情况？ {#why-does-this-happen}
 
-Kueue 为每个 Job 创建一个 [Workload](/docs/concepts/workload/) 对象来跟踪其准入状态。
+Kueue 为每个 Job 创建一个 [Workload](/zh-cn/docs/concepts/workload/) 对象来跟踪其准入状态。
 如果 Workload 被准入，它会与特定的 ClusterQueue 关联。
 Kueue 使用名为 `kueue.x-k8s.io/resource-in-use` 的
 [finalizer](https://kubernetes.io/docs/concepts/overview/working-with-objects/finalizers/)
@@ -37,7 +37,7 @@ Kueue 使用名为 `kueue.x-k8s.io/resource-in-use` 的
 ### 使用 `kueuectl` {#using-kueuectl}
 
 {{% alert title="注意" color="primary" %}}
-如果你没有安装 `kueuectl`，请按照[安装指南](/docs/reference/kubectl-kueue/installation/)进行操作。
+如果你没有安装 `kueuectl`，请按照[安装指南](/zh-cn/docs/reference/kubectl-kueue/installation/)进行操作。
 {{% /alert %}}
 
 ```shell

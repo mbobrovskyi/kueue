@@ -23,7 +23,7 @@ description: >
 1. `deployment` 集成默认启用。
 
 2. 对于 Kueue v0.15 及更早版本，
-   了解如何[使用自定义管理器配置安装 Kueue](/docs/installation/#install-a-custom-configured-released-version)，
+   了解如何[使用自定义管理器配置安装 Kueue](/zh-cn/docs/installation/#install-a-custom-configured-released-version)，
    并确保启用了 `deployment` 集成，例如：
 
    ```yaml
@@ -39,7 +39,7 @@ description: >
    
    对于 Kueue v0.14 及更早版本，必须显式启用 `"pod"` 集成。
    
-   有关配置详情，请参阅[运行普通 Pod](/docs/tasks/run/plain_pods/#before-you-begin)。
+   有关配置详情，请参阅[运行普通 Pod](/zh-cn/docs/tasks/run/plain_pods/#before-you-begin)。
    {{% /alert %}}
 
 3. 查看[管理集群配额](/zh-cn/docs/tasks/manage/administer_cluster_quotas)了解初始 Kueue 设置的详细信息。

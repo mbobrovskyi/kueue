@@ -8,7 +8,7 @@ description: >
 
 此页面展示了如何使用第三方证书颁发机构管理证书的解决方案，如 Cert Manager。
 
-该页面适用于[批处理管理员](/docs/tasks#batch-administrator)。
+该页面适用于[批处理管理员](/zh-cn/docs/tasks#batch-administrator)。
 
 ## 开始之前
 

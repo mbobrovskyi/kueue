@@ -9,9 +9,9 @@ weight: 10
 然而，已 GA 或已弃用的特性门控仍然被相应的 Kueue 组件识别，尽管它们无法在集群中引起任何行为差异。
 
 对于仍被 Kueue 组件识别的特性门控，请参阅
-[Alpha/Beta](/docs/installation/#feature-gates-for-alpha-and-beta-features)
+[Alpha/Beta](/zh-cn/docs/installation/#feature-gates-for-alpha-and-beta-features)
 特性门控表或
-[Graduated/Deprecated](/docs/installation/#feature-gates-for-graduated-or-deprecated-features)
+[Graduated/Deprecated](/zh-cn/docs/installation/#feature-gates-for-graduated-or-deprecated-features)
 特性门控表。
 
 ### 已移除的特性门控

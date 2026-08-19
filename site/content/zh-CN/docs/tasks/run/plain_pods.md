@@ -112,7 +112,7 @@ Kueue 会向它管理的 Pod 注入 `kueue.x-k8s.io/admission` 调度门。
 ### e. 限制
 
 - Kueue 管理的 Pod 不能在 `kube-system` 或 `kueue-system` 命名空间中创建。
-- 在[抢占](/docs/concepts/cluster_queue/#preemption)的情况下，Pod 将被终止和删除。
+- 在[抢占](/zh-cn/docs/concepts/cluster_queue/#preemption)的情况下，Pod 将被终止和删除。
 
 ## 示例 Pod
 
@@ -147,7 +147,7 @@ Kueue 仅提供运行 Pod 组所需的最小功能，
 作为此设计决策的结果，Kueue 不会重新实现 Kubernetes Job API 中可用的核心功能，
 例如高级重试策略。特别是，Kueue 不会重新创建失败的 Pod。
 
-此设计选择影响[抢占](/docs/concepts/cluster_queue/#preemption)场景。
+此设计选择影响[抢占](/zh-cn/docs/concepts/cluster_queue/#preemption)场景。
 当 Kueue 需要抢占表示 Pod 组的工作负载时，Kueue 会发送
 删除组中所有 Pod 的请求。创建原始 Pod 的用户或控制器有责任创建替换 Pod。
 

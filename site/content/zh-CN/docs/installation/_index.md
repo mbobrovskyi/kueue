@@ -37,12 +37,12 @@ description: >
 - 运行版本为 1.29 或更新的 Kubernetes 集群。了解如何[安装 Kubernetes 工具](https://kubernetes.io/docs/tasks/tools/)。
 - kubectl 命令行工具已与你的集群通信。
 
-Kueue 发布[指标](/docs/reference/metrics)以监控其控制器组件。
+Kueue 发布[指标](/zh-cn/docs/reference/metrics)以监控其控制器组件。
 你可以使用 Prometheus 采集这些指标。
 如果你没有自己的监控系统，请使用 [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus)。
 
 Kueue 中的 Webhook 服务使用内部证书管理来配置证书。如果你想使用第三方证书，例如
-[cert-manager](https://github.com/cert-manager/cert-manager)，请遵循[证书管理指南](/docs/tasks/manage/productization/cert_manager)。
+[cert-manager](https://github.com/cert-manager/cert-manager)，请遵循[证书管理指南](/zh-cn/docs/tasks/manage/productization/cert_manager)。
 
 [feature_gate]: https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates/
 
@@ -100,7 +100,7 @@ kubectl apply --server-side -f https://github.com/kubernetes-sigs/kueue/releases
 
 ### 为可见性 API 添加 API 优先级和公平性配置 {#add-api-priority-and-fairness-configuration-for-the-visibility-api}
 
-有关更多详细信息，请参阅[配置 API 优先级和公平性](/docs/tasks/manage/monitor_pending_workloads/pending_workloads_on_demand/#configure-api-priority-and-fairness)。
+有关更多详细信息，请参阅[配置 API 优先级和公平性](/zh-cn/docs/tasks/manage/monitor_pending_workloads/pending_workloads_on_demand/#configure-api-priority-and-fairness)。
 
 ### 升级策略 {#upgrade-policy}
 
@@ -140,7 +140,7 @@ wget https://github.com/kubernetes-sigs/kueue/releases/download/{{< param "versi
 2. 使用你喜欢的编辑器打开 `manifests.yaml`。
 3. 在 `kueue-manager-config` ConfigMap 清单中，编辑
    `controller_manager_config.yaml` 数据条目。该条目代表默认的
-   [KueueConfiguration](/docs/reference/kueue-config.v1beta1)。
+   [KueueConfiguration](/zh-cn/docs/reference/kueue-config.v1beta1)。
    ConfigMap 的内容类似于以下内容：
 
 ```yaml
@@ -176,7 +176,7 @@ data:
 **`integrations.externalFrameworks` 字段在 Kueue v0.7.0 及更高版本中可用。**
 
 {{% alert title="Note" color="primary" %}}
-请参阅 [All-or-nothing 与就绪 Pod](/docs/tasks/manage/setup_wait_for_pods_ready) 以了解
+请参阅 [All-or-nothing 与就绪 Pod](/zh-cn/docs/tasks/manage/setup_wait_for_pods_ready) 以了解
 有关为 Kueue 使用 `waitForPodsReady` 的更多信息。
 {{% /alert %}}
 
@@ -282,4 +282,4 @@ spec:
 
 ## 接下来是什么 {#whats-next}
 
-- 阅读 [`Configuration` 的 API 参考](/docs/reference/kueue-config.v1beta1/#Configuration)
+- 阅读 [`Configuration` 的 API 参考](/zh-cn/docs/reference/kueue-config.v1beta1/#Configuration)

@@ -9,7 +9,7 @@ description: >
 
 {{< feature-state state="alpha" for_version="v0.18" >}}
 
-本文介绍如何为 ClusterQueue 设置[并发准入](/docs/concepts/concurrent_admission)。
+本文介绍如何为 ClusterQueue 设置[并发准入](/zh-cn/docs/concepts/concurrent_admission)。
 
 ## 准备工作 {#before-you-begin}
 
@@ -17,13 +17,13 @@ description: >
 
 - Kubernetes 集群正在运行。
 - `kubectl` 命令行工具可以访问集群。
-- 已安装 0.18 或更高版本的 [Kueue](/docs/installation)。
+- 已安装 0.18 或更高版本的 [Kueue](/zh-cn/docs/installation)。
 
 ## 启用特性门控 {#enable-the-feature-gate}
 
 `ConcurrentAdmission` 是 alpha 特性，默认关闭。
 
-请按照[特性门控配置说明](/docs/installation/#change-the-feature-gates-configuration)，
+请按照[特性门控配置说明](/zh-cn/docs/installation/#change-the-feature-gates-configuration)，
 在 Kueue controller manager 中启用 `ConcurrentAdmission` 特性门控。
 
 ## 配置规格和队列 {#configure-flavors-and-queues}
@@ -179,5 +179,5 @@ Parent Workload 是作业集成观察准入状态的对象。Variant Workload �
 
 ## 接下来 {#whats-next}
 
-- 阅读[并发准入概念](/docs/concepts/concurrent_admission)。
-- 阅读 [`ConcurrentAdmissionPolicy` API 参考](/docs/reference/kueue.v1beta2/#kueue-x-k8s-io-v1beta2-ConcurrentAdmissionPolicy)。
+- 阅读[并发准入概念](/zh-cn/docs/concepts/concurrent_admission)。
+- 阅读 [`ConcurrentAdmissionPolicy` API 参考](/zh-cn/docs/reference/kueue.v1beta2/#kueue-x-k8s-io-v1beta2-ConcurrentAdmissionPolicy)。

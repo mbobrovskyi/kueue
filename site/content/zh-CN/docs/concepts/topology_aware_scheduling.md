@@ -82,7 +82,7 @@ TAS 配置好并可用后，用户可在 PodTemplate 层级设置如下注解来
 
 ### ClusterAutoscaler 支持
 
-TAS 通过 [Provisioning AdmissionCheck](/docs/admission-check-controllers/provisioning/)
+TAS 通过 [Provisioning AdmissionCheck](/zh-cn/docs/admission-check-controllers/provisioning/)
 集成 [Kubernetes ClusterAutoscaler](https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler)。
 
 当工作负载分配到带有 Provisioning AdmissionCheck 的 TAS ResourceFlavor 时，其准入流程如下：
@@ -90,7 +90,7 @@ TAS 通过 [Provisioning AdmissionCheck](/docs/admission-check-controllers/provi
 2. **准入检查**：Kueue 等待所有 AdmissionCheck（包括 Provisioning）在 Workload 的 `status.admissionChecks` 字段中报告 `Ready`。
 3. **拓扑分配**：Kueue 在 Workload 对象上设置拓扑分配，计算时会考虑新扩容的节点。
 
-另请参阅 [ProvisioningRequestConfig 中的 PodSet 更新](/docs/admission-check-controllers/provisioning/#podset-updates)，了解如何配置 Kueue 以限制调度到新扩容节点（前提是扩容类支持）。
+另请参阅 [ProvisioningRequestConfig 中的 PodSet 更新](/zh-cn/docs/admission-check-controllers/provisioning/#podset-updates)，了解如何配置 Kueue 以限制调度到新扩容节点（前提是扩容类支持）。
 
 ### 热插拔（Hot swap）支持
 {{% alert title="注意" color="primary" %}}
@@ -108,7 +108,7 @@ TAS 通过 [Provisioning AdmissionCheck](/docs/admission-check-controllers/provi
 或节点被移除（从集群中消失），则视为节点故障。
 
 注意，在原有域（如机架）内找到替代节点并非总是可行。因此，建议使用
-[WaitForPodsReady](/docs/tasks/manage/setup_wait_for_pods_ready/) 并配置 `waitForPodsReady.recoveryTimeout`，
+[WaitForPodsReady](/zh-cn/docs/tasks/manage/setup_wait_for_pods_ready/) 并配置 `waitForPodsReady.recoveryTimeout`，
 以防止工作负载无限等待替换节点。
 
 #### 多层拓扑
@@ -118,7 +118,7 @@ TAS 通过 [Provisioning AdmissionCheck](/docs/admission-check-controllers/provi
 **TASMultiLayerTopology** 目前是一个 alpha 特性，默认情况下是禁用的。
 
 你可以通过编辑 **TASMultiLayerTopology** 特性门控来启用它。有关配置特性门控的说明，
-请参阅[安装指南](/docs/installation/#change-the-feature-gates-configuration)。
+请参阅[安装指南](/zh-cn/docs/installation/#change-the-feature-gates-configuration)。
 {{% /alert %}}
 
 多层拓扑允许你定义最多 3 层的切片拓扑约束，从而在深层次拓扑层次结构中实现细粒度放置。

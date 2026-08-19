@@ -104,7 +104,7 @@ kubectl create -f ray-job-sample.yaml
 
 ### 如何在 RayJob 中启用动态扩容
 
-1. 打开特性开关 [弹性工作负载（Elastic Workloads / Workload Slices）](/docs/concepts/elastic_workload)
+1. 打开特性开关 [弹性工作负载（Elastic Workloads / Workload Slices）](/zh-cn/docs/concepts/elastic_workload)
 
 ```yaml
 ElasticJobsViaWorkloadSlices: true

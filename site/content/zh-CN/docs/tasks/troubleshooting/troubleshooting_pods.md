@@ -6,7 +6,7 @@ description: >
   Pod 或 Pod 组状态的故障排除
 ---
 
-本文档介绍如何排除由 Kueue 直接管理的[普通 Pod](/docs/tasks/run/plain_pods/) 的故障，
+本文档介绍如何排除由 Kueue 直接管理的[普通 Pod](/zh-cn/docs/tasks/run/plain_pods/) 的故障，
 换句话说，就是不由 Kubernetes Job 或支持的 CRD 管理的 Pod。
 
 {{% alert title="注意" color="primary" %}}
@@ -21,13 +21,13 @@ Kueue 向其管理的 Pod 添加标签 `kueue.x-k8s.io/managed`，值为 `true`�
 
 Pod 可能没有 `kueue.x-k8s.io/managed` 标签的原因如下：
 
-1. [Pod 集成被禁用](/docs/tasks/run/plain_pods/#before-you-begin)。
+1. [Pod 集成被禁用](/zh-cn/docs/tasks/run/plain_pods/#before-you-begin)。
 2. Pod 所属的命名空间不满足
-   [`managedJobsNamespaceSelector`](/docs/reference/kueue-config.v1beta1/#Configuration)
+   [`managedJobsNamespaceSelector`](/zh-cn/docs/reference/kueue-config.v1beta1/#Configuration)
    的要求。
 3. Pod 由 Kueue 管理的 Job 或等效 CRD 拥有。
 4. Pod 没有 `kueue.x-k8s.io/queue-name` 标签，并且
-   [`manageJobsWithoutQueueName`](/docs/reference/kueue-config.v1beta1/#Configuration)
+   [`manageJobsWithoutQueueName`](/zh-cn/docs/reference/kueue-config.v1beta1/#Configuration)
    设置为 `false`。
 
 {{% alert title="注意" color="primary" %}}
@@ -38,10 +38,10 @@ Pod 可能没有 `kueue.x-k8s.io/managed` 标签的原因如下：
 
 ## 识别你的 Pod 对应的 Workload {#identifying-the-workload-for-your-pod}
 
-当使用 [Pod 组](/docs/tasks/run/plain_pods/#running-a-group-of-pods-to-be-admitted-together)时，
+当使用 [Pod 组](/zh-cn/docs/tasks/run/plain_pods/#running-a-group-of-pods-to-be-admitted-together)时，
 Workload 的名称与标签 `kueue.x-k8s.io/pod-group-name` 的值匹配。
 
-当使用[单个 Pod](/docs/tasks/run/plain_pods/#running-a-single-pod-admitted-by-kueue)时，
+当使用[单个 Pod](/zh-cn/docs/tasks/run/plain_pods/#running-a-single-pod-admitted-by-kueue)时，
 你可以按照[识别 Job 的 Workload](troubleshooting_jobs/#identifying-the-workload-for-your-job)
 指南来识别其对应的 Workload。
 
@@ -88,7 +88,7 @@ Events:
 
 ## 为什么我的 Pod 消失了？ {#why-did-my-pod-disappear}
 
-当你启用[抢占](/docs/concepts/cluster_queue/#preemption)时，
+当你启用[抢占](/zh-cn/docs/concepts/cluster_queue/#preemption)时，
 Kueue 可能会抢占 Pod 以容纳更高优先级的作业或回收配额。
 抢占通过 `DELETE` 调用实现，这是在 Kubernetes 中终止 Pod 的标准方式。
 
@@ -106,7 +106,7 @@ Kueue 通常不会在抢占时完全删除 Pod 组中的 Pod。
 
 Kueue 会在以下情况下从 Pod 中移除 finalizer：
 
-- 组满足[终止](/docs/tasks/run/plain_pods/#termination)条件，例如，
+- 组满足[终止](/zh-cn/docs/tasks/run/plain_pods/#termination)条件，例如，
   当所有 Pod 成功终止时。
 - 对于 Failed 的 Pod，当 Kueue 观察到替换 Pod 时。
 - 你删除 Workload 对象时。

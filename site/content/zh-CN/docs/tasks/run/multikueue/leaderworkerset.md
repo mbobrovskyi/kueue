@@ -9,7 +9,7 @@ description: >
 
 ## 在你开始之前
 
-查阅 [MultiKueue 安装指南](/docs/tasks/manage/setup_multikueue)以了解如何正确设置 MultiKueue 集群。
+查阅 [MultiKueue 安装指南](/zh-cn/docs/tasks/manage/setup_multikueue)以了解如何正确设置 MultiKueue 集群。
 
 ## 工作原理
 

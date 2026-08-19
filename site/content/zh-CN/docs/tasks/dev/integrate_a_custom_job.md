@@ -12,11 +12,11 @@ Kubernetes batch Job、MPIJob、RayJob 和 JobSet。
 使用 Kueue 管理缺乏内置集成的类 Job CRD 有三种选择：
 
 - 通过将自定义 Job 实例包装在 AppWrapper 中来利用内置的 AppWrapper 集成。
-  详情请参阅[运行包装的自定义工作负载](/docs/tasks/run/external_workloads/wrapped_custom_workload)。
+  详情请参阅[运行包装的自定义工作负载](/zh-cn/docs/tasks/run/external_workloads/wrapped_custom_workload)。
 - 作为 Kueue 仓库的一部分构建新的集成。
 - 作为外部控制器构建新的集成。
 
-本指南面向[平台开发者](/docs/tasks#platform-developer)，描述如何构建新的集成。
+本指南面向[平台开发者](/zh-cn/docs/tasks#platform-developer)，描述如何构建新的集成。
 集成应该使用 Kueue 的 `jobframework` 包提供的 API 来构建。
 这既会简化开发，也会确保如果你的 Job 类型被社区广泛使用，
 你的控制器将被正确构造以成为核心内置集成。

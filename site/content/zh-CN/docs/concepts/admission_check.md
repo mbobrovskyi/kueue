@@ -34,7 +34,7 @@ spec:
 
 ### 用法 {#usage}
 
-定义后，可以在 [ClusterQueue 的 spec](/docs/concepts/cluster_queue) 中引用 AdmissionCheck。所有与该队列关联的 Workload 都需要由 AdmissionCheck 的控制器评估后才能被准入。
+定义后，可以在 [ClusterQueue 的 spec](/zh-cn/docs/concepts/cluster_queue) 中引用 AdmissionCheck。所有与该队列关联的 Workload 都需要由 AdmissionCheck 的控制器评估后才能被准入。
 类似于 `ResourceFlavors`，如果找不到 `AdmissionCheck` 或其控制器未将其标记为 `Active`，则 ClusterQueue 会被标记为 Inactive。
 
 在 ClusterQueue 的 spec 中有两种方式引用 AdmissionChecks：
@@ -125,5 +125,5 @@ Kueue 确保 Workload 的 AdmissionCheckStates 列表与其 ClusterQueue 的 Adm
 
 ## 接下来？ {#what-next}
 
-- 阅读 `AdmissionCheck` 的 [API 参考](/docs/reference/kueue.v1beta1/#kueue-x-k8s-io-v1beta1-AdmissionCheck)
-- 了解更多内置的 [Provisioning Admission Check Controller](/docs/admission-check-controllers/provisioning)
+- 阅读 `AdmissionCheck` 的 [API 参考](/zh-cn/docs/reference/kueue.v1beta1/#kueue-x-k8s-io-v1beta1-AdmissionCheck)
+- 了解更多内置的 [Provisioning Admission Check Controller](/zh-cn/docs/admission-check-controllers/provisioning)

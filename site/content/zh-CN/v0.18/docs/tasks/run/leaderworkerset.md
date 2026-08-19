@@ -15,14 +15,14 @@ description: 将 LeaderWorkerSet 作为由 Kueue 管理的工作负载运行
 
 此集成基于[普通的 Pod 组](https://kueue.sigs.k8s.io/v0.18/docs/tasks/run/plain_pods/)集成。
 
-本指南适用于对 Kueue 有基本了解的[服务用户](/zh-CN/docs/tasks#serving-user)。
-有关更多信息，请参见 [Kueue 概述](/zh-CN/docs/overview)。
+本指南适用于对 Kueue 有基本了解的[服务用户](/zh-cn/docs/tasks#serving-user)。
+有关更多信息，请参见 [Kueue 概述](/zh-cn/docs/overview)。
 
 ## 开始之前 {#before-you-begin}
 
 1. `leaderworkerset.x-k8s.io/leaderworkerset` 集成默认启用。
 
-2. 对于 Kueue v0.15 及更早版本，学习如何[安装 Kueue 并使用自定义管理器配置](/zh-CN/docs/installation/#install-a-custom-configured-released-version)，
+2. 对于 Kueue v0.15 及更早版本，学习如何[安装 Kueue 并使用自定义管理器配置](/zh-cn/docs/installation/#install-a-custom-configured-released-version)，
    并确保你已启用 `leaderworkerset.x-k8s.io/leaderworkerset` 集成，例如：
 
    ```yaml
@@ -37,10 +37,10 @@ description: 将 LeaderWorkerSet 作为由 Kueue 管理的工作负载运行
    
    对于 Kueue v0.14 及更早版本，必须显式启用 `"pod"` 集成。
    
-   有关配置详情，请参阅[运行普通 Pod](/zh-CN/docs/tasks/run/plain_pods/#before-you-begin)。
+   有关配置详情，请参阅[运行普通 Pod](/zh-cn/docs/tasks/run/plain_pods/#before-you-begin)。
    {{% /alert %}}
    
-3. 查看[管理集群配额](/zh-CN/docs/tasks/manage/administer_cluster_quotas)了解初始 Kueue 设置的详细信息。
+3. 查看[管理集群配额](/zh-cn/docs/tasks/manage/administer_cluster_quotas)了解初始 Kueue 设置的详细信息。
 
 ## 运行一个由 Kueue 准入的 LeaderWorkerSet {#running-a-leaderworkerset-admitted-by-kueue}
 
@@ -48,7 +48,7 @@ description: 将 LeaderWorkerSet 作为由 Kueue 管理的工作负载运行
 
 ### a. 队列选择 {#a-queue-selection}
 
-目标[本地队列](/zh-CN/docs/concepts/local_queue)应在 LeaderWorkerSet 配置的 `metadata.labels` 部分指定。
+目标[本地队列](/zh-cn/docs/concepts/local_queue)应在 LeaderWorkerSet 配置的 `metadata.labels` 部分指定。
 
 ```yaml
 metadata:
@@ -103,7 +103,7 @@ kubectl create -f https://kueue.sigs.k8s.io/examples/serving-workloads/sample-le
 Kueue 支持通过从 Pod 模板读取注解来为 LeaderWorkerSet 提供拓扑感知调度（Topology Aware Scheduling，TAS）。
 要启用此功能：
 
-- [为拓扑感知调度配置集群](/zh-CN/docs/concepts/topology_aware_scheduling)。
+- [为拓扑感知调度配置集群](/zh-cn/docs/concepts/topology_aware_scheduling)。
 - 向 `leaderTemplate` 和 `workerTemplate` 添加 `kueue.x-k8s.io/podset-required-topology` 注解。
 - 向 `leaderTemplate` 和 `workerTemplate` 添加 `kueue.x-k8s.io/podset-group-name`
   注解，并使用相同的值。这可以确保 Leader 和 Workers 被调度到同一拓扑域。
@@ -121,4 +121,4 @@ Kueue 支持通过从 Pod 模板读取注解来为 LeaderWorkerSet 提供拓扑�
 
 ## MultiKueue
 
-有关在 MultiKueue 环境中运行 LeaderWorkerSet 的详细信息，请查看 [MultiKueue](/zh-CN/docs/tasks/run/multikueue/leaderworkerset)。
+有关在 MultiKueue 环境中运行 LeaderWorkerSet 的详细信息，请查看 [MultiKueue](/zh-cn/docs/tasks/run/multikueue/leaderworkerset)。

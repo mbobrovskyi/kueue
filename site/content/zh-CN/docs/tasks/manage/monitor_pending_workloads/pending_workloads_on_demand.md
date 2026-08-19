@@ -8,7 +8,7 @@ description: >
 
 This page shows you how to monitor pending workloads with `VisibilityOnDemand` feature.
 
-The intended audience for this page are [batch administrators](/docs/tasks#batch-administrator) for [Cluster Queue visibility section](#cluster-queue-visibility-via-kubectl), and [batch users](/docs/tasks#batch-user) for [Local Queue Visibility section](#local-queue-visibility-via-kubectl).
+The intended audience for this page are [batch administrators](/zh-cn/docs/tasks#batch-administrator) for [Cluster Queue visibility section](#cluster-queue-visibility-via-kubectl), and [batch users](/zh-cn/docs/tasks#batch-user) for [Local Queue Visibility section](#local-queue-visibility-via-kubectl).
 
 From version v0.6.0, Kueue provides the ability for a batch administrators to monitor
 the pipeline of pending jobs, and help users to estimate when their jobs will
@@ -20,7 +20,7 @@ Make sure the following conditions are met:
 
 - A Kubernetes cluster is running.
 - The kubectl command-line tool has communication with your cluster.
-- [Kueue is installed](/docs/installation) in version v0.6.0 or later.
+- [Kueue is installed](/zh-cn/docs/installation) in version v0.6.0 or later.
 
 ### Configure API Priority and Fairness:
 
@@ -70,7 +70,7 @@ kubectl apply -f https://kueue.sigs.k8s.io/examples/visibility/cluster-role-and-
 
 `VisibilityOnDemand` is a Beta feature enabled by default.
 
-You can disable it by setting the `VisibilityOnDemand` feature gate. Check the [Installation](/docs/installation/#change-the-feature-gates-configuration) guide for details on feature gate configuration.
+You can disable it by setting the `VisibilityOnDemand` feature gate. Check the [Installation](/zh-cn/docs/installation/#change-the-feature-gates-configuration) guide for details on feature gate configuration.
 
 If you disable the feature, you also need to remove the associated `APIService` from your cluster by doing `kubectl delete APIService v1beta2.visibility.kueue.x-k8s.io`.
 

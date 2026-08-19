@@ -8,12 +8,12 @@ description: >
 
 Provisioning 准入检查控制器(AdmissionCheck Controller)是一个专为将 Kueue 与
 [Kubernetes 集群自动缩放器](https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler)
-集成而设计的准入检查控制器。其主要功能是为持有[配额预留](/docs/concepts/#quota-reservation)的工作负载创建
+集成而设计的准入检查控制器。其主要功能是为持有[配额预留](/zh-cn/docs/concepts/#quota-reservation)的工作负载创建
 [ProvisioningRequests](https://github.com/kubernetes/autoscaler/blob/4872bddce2bcc5b4a5f6a3d569111c11b8a2baf4/cluster-autoscaler/provisioningrequest/apis/autoscaling.x-k8s.io/v1beta1/types.go#L41)，
-并保持 [AdmissionCheckState](/docs/concepts/admission_check/#admissioncheckstate) 的同步。
+并保持 [AdmissionCheckState](/zh-cn/docs/concepts/admission_check/#admissioncheckstate) 的同步。
 
 该控制器是 Kueue 的一部分，默认启用。您可以通过编辑 `ProvisioningACC` 特性门控来禁用它。
-有关特性门控配置的详细信息，请查看[安装](/docs/installation/#change-the-feature-gates-configuration)指南。
+有关特性门控配置的详细信息，请查看[安装](/zh-cn/docs/installation/#change-the-feature-gates-configuration)指南。
 
 Provisioning 准入检查控制器支持
 [Kubernetes 集群自动缩放器](https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler)
@@ -24,11 +24,11 @@ Provisioning 准入检查控制器支持
 
 ## 使用方法 {#usage}
 
-要使用 Provisioning 准入检查，需要创建一个 [AdmissionCheck](/docs/concepts/admission_check)，
+要使用 Provisioning 准入检查，需要创建一个 [AdmissionCheck](/zh-cn/docs/concepts/admission_check)，
 将 `kueue.x-k8s.io/provisioning-request` 作为 `.spec.controllerName`，
 并使用 `ProvisioningRequestConfig` 对象创建 ProvisioningRequest 配置。
 
-接下来，您需要从 ClusterQueue 引用 AdmissionCheck，详见[准入检查使用](/docs/concepts/admission_check#usage)。
+接下来，您需要从 ClusterQueue 引用 AdmissionCheck，详见[准入检查使用](/zh-cn/docs/concepts/admission_check#usage)。
 
 完整设置请参见[下文](#setup)。
 
@@ -99,7 +99,7 @@ spec:
 
 例如，将字段设置为 `IdenticalPodTemplates` 或 `IdenticalWorkloadSchedulingRequirements`，
 允许在使用 PyTorchJob 时创建具有单个 PodTemplate 的 ProvisioningRequest，
-如此示例：[`sample-pytorchjob.yaml`](/docs/tasks/run/kubeflow/pytorchjobs/#sample-pytorchjob)。
+如此示例：[`sample-pytorchjob.yaml`](/zh-cn/docs/tasks/run/kubeflow/pytorchjobs/#sample-pytorchjob)。
 {{% /alert %}}
 
 #### 重试策略 {#retry-strategy}

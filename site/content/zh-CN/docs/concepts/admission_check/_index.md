@@ -38,7 +38,7 @@ spec:
 
 ### 使用方法
 
-一旦定义，AdmissionCheck 可以在[ClusterQueue 的规约](/docs/concepts/cluster_queue)中引用。
+一旦定义，AdmissionCheck 可以在[ClusterQueue 的规约](/zh-cn/docs/concepts/cluster_queue)中引用。
 与队列关联的所有 Workload 在被接纳前都需要由 AdmissionCheck 的控制器进行评估。
 类似于 `ResourceFlavors`，如果未找到 `AdmissionCheck` 或其控制器未将其标记为
 `Active`，ClusterQueue 将被标记为 Inactive。
@@ -130,12 +130,12 @@ Kueue 确保 Workload 的 AdmissionCheckStates 列表与 Workload 的 ClusterQue
 - 发出 `EvictedDueToAdmissionCheck` 事件
 
 如果 Workload 的任意 AdmissionCheck 处于 `Rejected` 状态：
-- Workload 被停用 - [`workload.Spec.Active`](/docs/concepts/workload/#active) 设置为 `False`
+- Workload 被停用 - [`workload.Spec.Active`](/zh-cn/docs/concepts/workload/#active) 设置为 `False`
 - 如果已 `Admitted`，Workload 被驱逐 - Workload 在 `workload.Status.Condition` 中具有一个 `Evicted` 条件，原因标记为 `Deactivated`
 - 如果 Workload 具有 `QuotaReservation`，它将会被释放。
 - 发出 `AdmissionCheckRejected` 事件
 
 ## 接下来是什么？
 
-- 阅读 [API 参考](/docs/reference/kueue.v1beta1/#kueue-x-k8s-io-v1beta1-AdmissionCheck)了解 `AdmissionCheck`
-- 从内置的[准入检查控制器](/docs/concepts/admission_check/provisioning_request)学习更多
+- 阅读 [API 参考](/zh-cn/docs/reference/kueue.v1beta1/#kueue-x-k8s-io-v1beta1-AdmissionCheck)了解 `AdmissionCheck`
+- 从内置的[准入检查控制器](/zh-cn/docs/concepts/admission_check/provisioning_request)学习更多

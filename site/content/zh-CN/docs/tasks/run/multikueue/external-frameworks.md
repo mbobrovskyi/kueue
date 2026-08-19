@@ -11,7 +11,7 @@ description: >
 
 ## 开始之前
 
-1. 检查[多 Kueue 安装指南](/docs/tasks/manage/setup_multikueue)以了解如何正确设置多 Kueue 集群。
+1. 检查[多 Kueue 安装指南](/zh-cn/docs/tasks/manage/setup_multikueue)以了解如何正确设置多 Kueue 集群。
 
 2. 启用 `MultiKueueAdaptersForCustomJobs` 特性门控。此特性处于 Alpha 阶段，默认情况下是禁用的。
 

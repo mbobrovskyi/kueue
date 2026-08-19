@@ -16,16 +16,16 @@ description: >
 vGPU 的数量（`nvidia.com/gpu`）。对于配额管理，你需要跟踪所有 vGPU 实例的总资源消耗。
 
 下面我们将演示如何在 Kueue
-中使用[用于配额管理的资源转换](/docs/tasks/manage/administer_cluster_quotas/#transform-resources-for-quota-management)来支持这一点。
+中使用[用于配额管理的资源转换](/zh-cn/docs/tasks/manage/administer_cluster_quotas/#transform-resources-for-quota-management)来支持这一点。
 
-本指南适用于对 Kueue 有基本了解的[批处理用户](/docs/tasks#batch-user)。
-有关更多信息，请参阅 [Kueue 概述](/docs/overview)。
+本指南适用于对 Kueue 有基本了解的[批处理用户](/zh-cn/docs/tasks#batch-user)。
+有关更多信息，请参阅 [Kueue 概述](/zh-cn/docs/overview)。
 
 ## 在你开始之前
 
 1. `Deployment` 集成默认启用。
 
-2. 请按照[使用自定义配置的安装说明](/docs/installation#install-a-custom-configured-released-version)配置带有
+2. 请按照[使用自定义配置的安装说明](/zh-cn/docs/installation#install-a-custom-configured-released-version)配置带有
    ResourceTransformation 的 Kueue。
 
 3. 确保你的集群已安装 HAMi 并拥有可用的 vGPU 资源。
@@ -86,7 +86,7 @@ spec:
 
 ### c. 队列选择
 
-目标 [本地队列](/docs/concepts/local_queue) 应当在 Pod
+目标 [本地队列](/zh-cn/docs/concepts/local_queue) 应当在 Pod
 配置的 `metadata.labels` 部分指定。
 
 ```yaml

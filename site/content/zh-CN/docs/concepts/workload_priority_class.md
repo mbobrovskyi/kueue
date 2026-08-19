@@ -6,7 +6,7 @@ description: >
   一种优先级类，其值被 Kueue 控制器使用，并且独立于 Pod 的优先级。
 ---
 
-`WorkloadPriorityClass` 允许你控制 [`Workload`](/docs/concepts/workload) 的优先级，而不会影响 Pod 的优先级。
+`WorkloadPriorityClass` 允许你控制 [`Workload`](/zh-cn/docs/concepts/workload) 的优先级，而不会影响 Pod 的优先级。
 此功能适用于以下场景：
 - 希望优先调度那些长时间处于非活跃状态的工作负载
 - 希望为开发环境工作负载设置较低优先级，为生产环境工作负载设置较高优先级
@@ -107,6 +107,6 @@ Workload 的 `PriorityClassSource` 和 `PriorityClassName` 字段是不可变的
 
 ## 下一步？
 
-- 了解如何[运行作业](/docs/tasks/run/jobs)
-- 了解如何[使用 Workload 优先级运行作业](/docs/tasks/manage/run_job_with_workload_priority)
-- 阅读 `WorkloadPriorityClass` 的 [API 参考](/docs/reference/kueue.v1beta1/#kueue-x-k8s-io-v1beta1-WorkloadPriorityClass)
+- 了解如何[运行作业](/zh-cn/docs/tasks/run/jobs)
+- 了解如何[使用 Workload 优先级运行作业](/zh-cn/docs/tasks/manage/run_job_with_workload_priority)
+- 阅读 `WorkloadPriorityClass` 的 [API 参考](/zh-cn/docs/reference/kueue.v1beta1/#kueue-x-k8s-io-v1beta1-WorkloadPriorityClass)

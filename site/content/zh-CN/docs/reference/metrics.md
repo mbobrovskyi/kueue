@@ -7,12 +7,12 @@ description: >
 ---
 
 {{% alert title="Note" color="primary" %}}
-要启用指标抓取，请参阅[设置 Prometheus](/docs/tasks/manage/observability/setup_prometheus)。
+要启用指标抓取，请参阅[设置 Prometheus](/zh-cn/docs/tasks/manage/observability/setup_prometheus)。
 {{% /alert %}}
 
 Kueue 暴露了 [prometheus](https://prometheus.io) 指标来监控系统的健康状况和
-[ClusterQueues](/docs/concepts/cluster_queue)
-以及 [LocalQueues](/docs/concepts/local_queue) 的状态。
+[ClusterQueues](/zh-cn/docs/concepts/cluster_queue)
+以及 [LocalQueues](/zh-cn/docs/concepts/local_queue) 的状态。
 
 <!-- NOTE: Sections below contain tables generated from code. Do not edit content between BEGIN/END GENERATED TABLE markers. Use `make generate-metrics-tables` to update. -->
 
@@ -57,7 +57,7 @@ Kueue 暴露了 [prometheus](https://prometheus.io) 指标来监控系统的健�
 ## LocalQueue 状态（Alpha）
 
 只有在启用了 `LocalQueueMetrics` 特性门控时，以下指标才可用。
-详情请参阅[安装](/docs/installation/)的[更改特性门控配置](/docs/installation/#change-the-feature-gates-configuration)部分。
+详情请参阅[安装](/zh-cn/docs/installation/)的[更改特性门控配置](/zh-cn/docs/installation/#change-the-feature-gates-configuration)部分。
 
 <!-- BEGIN GENERATED TABLE: localqueue -->
 | 指标名称 | 类型 | 描述 | 标签 |
@@ -92,7 +92,7 @@ Kueue 暴露了 [prometheus](https://prometheus.io) 指标来监控系统的健�
 
 ### 可选指标
 
-以下指标仅在[管理器配置](/docs/installation/#install-a-custom-configured-released-version)中启用了
+以下指标仅在[管理器配置](/zh-cn/docs/installation/#install-a-custom-configured-released-version)中启用了
 `metrics.enableClusterQueueResources` 时可用。
 
 <!-- BEGIN GENERATED TABLE: optional_clusterqueue_resources -->
@@ -106,8 +106,8 @@ Kueue 暴露了 [prometheus](https://prometheus.io) 指标来监控系统的健�
 | `kueue_cluster_queue_weighted_share` | 仪表盘 | 报告一个值，该值表示由 ClusterQueue 提供的所有资源中，使用量高于名义配额与可借资源比率的最大值除以权重。<br>如果为零，意味着 ClusterQueue 的使用量低于名义配额。<br>如果 ClusterQueue 的权重为零且正在借用，这将返回 NaN。 | `cluster_queue`: ClusterQueue 的名称<br> `cohort`: Cohort 的名称<br> `replica_role`: `leader`、`follower` 或 `standalone` 其中之一 |
 <!-- END GENERATED TABLE: optional_clusterqueue_resources -->
 
-以下指标仅在[管理器配置](/docs/installation/#install-a-custom-configured-released-version)中启用了 `waitForPodsReady` 时可用。
-更多详情[见](/docs/tasks/manage/setup_wait_for_pods_ready)。
+以下指标仅在[管理器配置](/zh-cn/docs/installation/#install-a-custom-configured-released-version)中启用了 `waitForPodsReady` 时可用。
+更多详情[见](/zh-cn/docs/tasks/manage/setup_wait_for_pods_ready)。
 
 <!-- BEGIN GENERATED TABLE: optional_wait_for_pods_ready -->
 | 指标名称 | 类型 | 描述 | 标签 |

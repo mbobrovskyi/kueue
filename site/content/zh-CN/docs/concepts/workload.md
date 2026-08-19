@@ -8,7 +8,7 @@ description: >
 
 _工作负载(Workload)_ 是将运行至完成的应用程序。它可以由一个或多个 Pod 组成，
 这些 Pod 松散或紧密耦合，作为一个整体完成任务。工作负载是 Kueue 中的
-[准入(admission)](/docs/concepts#admission)单位。
+[准入(admission)](/zh-cn/docs/concepts#admission)单位。
 
 典型的工作负载可以用
 [Kubernetes `batch/v1.Job`](https://kubernetes.io/docs/concepts/workloads/controllers/job/)
@@ -18,7 +18,7 @@ Kubernetes API。
 但是，Kueue 不直接操作 Job 对象。相反，Kueue 管理代表任意工作负载资源需求的
 Workload 对象。Kueue 自动为每个 Job 对象创建一个 Workload，并同步决策和状态。
 
-当工作负载所在的 ClusterQueue 启用[并发准入](/docs/concepts/concurrent_admission)时，
+当工作负载所在的 ClusterQueue 启用[并发准入](/zh-cn/docs/concepts/concurrent_admission)时，
 Kueue 可以用一个 Parent Workload 和多个 Variant Workload 表示同一个作业。Parent Workload 聚合作业集成所需的
 准入状态，每个 Variant 都是一次内部准入尝试，并被限制到一个 ResourceFlavor。
 
@@ -52,7 +52,7 @@ spec:
 
 ## 活跃状态 {#active}
 
-您可以通过设置 [Active](/docs/reference/kueue.v1beta1#kueue-x-k8s-io-v1beta1-WorkloadSpec)
+您可以通过设置 [Active](/zh-cn/docs/reference/kueue.v1beta1#kueue-x-k8s-io-v1beta1-WorkloadSpec)
 字段来停止或恢复正在运行的工作负载。active 字段决定工作负载是否可以被准入到队列中
 或继续运行（如果已经被准入）。
 将 `.spec.Active` 从 true 更改为 false 将导致正在运行的工作负载被驱逐且不会
@@ -60,7 +60,7 @@ spec:
 
 ## 队列名称 {#queue-name}
 
-要指示您希望将工作负载排入哪个[本地队列(LocalQueue)](/docs/concepts/local_queue)，
+要指示您希望将工作负载排入哪个[本地队列(LocalQueue)](/zh-cn/docs/concepts/local_queue)，
 请在 `.spec.queueName` 字段中设置本地队列的名称。
 
 ## Pod 集合 {#pod-sets}
@@ -101,12 +101,12 @@ Kueue 将工作负载的总资源使用量计算为每个 `podSet` 资源请求�
 #### 保留的资源名称 {#reserved-resource-names}
 
 除了通常的资源命名限制外，您不能在 Pod 规格中使用 `pods` 资源名称，因为它是为
-Kueue 内部使用而保留的。您可以在[集群队列(ClusterQueue)](/docs/concepts/cluster_queue#resources)
+Kueue 内部使用而保留的。您可以在[集群队列(ClusterQueue)](/zh-cn/docs/concepts/cluster_queue#resources)
 中使用 `pods` 资源名称来设置 Pod 最大数量的配额。
 
 ## 优先级 {#priority}
 
-工作负载具有影响[集群队列准入顺序](/docs/concepts/cluster_queue#queueing-strategy)的
+工作负载具有影响[集群队列准入顺序](/zh-cn/docs/concepts/cluster_queue#queueing-strategy)的
 优先级。有两种设置工作负载优先级的方法：
 
 - **Pod 优先级**：您可以在 `.spec.priority` 字段中查看工作负载的优先级。
@@ -115,7 +115,7 @@ Kueue 内部使用而保留的。您可以在[集群队列(ClusterQueue)](/docs/
   设置工作负载的优先级。
 
 - **WorkloadPriority**：有时开发人员希望控制工作负载的优先级而不影响 Pod 的优先级。
-  通过使用 [`WorkloadPriority`](/docs/concepts/workload_priority_class)，
+  通过使用 [`WorkloadPriority`](/zh-cn/docs/concepts/workload_priority_class)，
   您可以独立管理工作负载的排队和抢占优先级，与 Pod 的优先级分离。
 
 ## 自定义工作负载 {#custom-workload}
@@ -146,7 +146,7 @@ status:
 ## 作业资源分配的全有或全无语义 {#all-or-nothing-semantics-for-job-resource-assignment}
 
 此机制允许在作业未准备就绪时被驱逐并重新排队。
-请参考[全有或全无与就绪 Pod](/docs/tasks/manage/setup_wait_for_pods_ready/)
+请参考[全有或全无与就绪 Pod](/zh-cn/docs/tasks/manage/setup_wait_for_pods_ready/)
 了解更多详情。
 
 ### 指数退避重新排队 {#exponential-backoff-requeueing}
@@ -196,6 +196,6 @@ spec:
 
 ## 下一步 {#whats-next}
 
-- 了解[工作负载优先级类](/docs/concepts/workload_priority_class)。
-- 了解如何[运行作业](/docs/tasks/run/jobs)
-- 阅读 `Workload` 的 [API 参考](/docs/reference/kueue.v1beta1/#kueue-x-k8s-io-v1beta1-Workload)
+- 了解[工作负载优先级类](/zh-cn/docs/concepts/workload_priority_class)。
+- 了解如何[运行作业](/zh-cn/docs/tasks/run/jobs)
+- 阅读 `Workload` 的 [API 参考](/zh-cn/docs/reference/kueue.v1beta1/#kueue-x-k8s-io-v1beta1-Workload)

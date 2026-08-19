@@ -8,7 +8,7 @@ description: >
 
 此页面展示了如何配置 Kueue 以使用 Prometheus 指标。
 
-此页面适用于[批处理管理员](/zh-CN/docs/tasks#batch-administrator)。
+此页面适用于[批处理管理员](/zh-cn/docs/tasks#batch-administrator)。
 
 ## 开始之前
 
@@ -47,7 +47,7 @@ Kueue 也支持通过 Helm 部署 Prometheus。
 
 如果你想使用外部证书保护指标端点：
 
-1. 在 kueue 配置中禁用内部证书管理（更多详情参见[自定义配置](https://kueue.sigs.k8s.io/zh-CN/docs/installation/#install-a-custom-configured-released-version)）。
+1. 在 kueue 配置中禁用内部证书管理（更多详情参见[自定义配置](https://kueue.sigs.k8s.io/zh-cn/docs/installation/#install-a-custom-configured-released-version)）。
 2. 将 `enableCertManager` 和 `enablePrometheus` 都设置为 true。
 3. 提供 `tlsConfig` 的值，见下面的例子：
 

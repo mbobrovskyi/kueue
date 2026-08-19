@@ -9,9 +9,9 @@ description: >
 
 {{< feature-state state="alpha" for_version="v0.18" >}}
 
-并发准入（Concurrent Admission）允许 Kueue 为同一个[工作负载](/docs/concepts/workload)
+并发准入（Concurrent Admission）允许 Kueue 为同一个[工作负载](/zh-cn/docs/concepts/workload)
 保留多个准入尝试，每个准入尝试都被限制到不同的
-[ResourceFlavor](/docs/concepts/resource_flavor)。这样，工作负载可以先在已准入的规格上启动，
+[ResourceFlavor](/zh-cn/docs/concepts/resource_flavor)。这样，工作负载可以先在已准入的规格上启动，
 同时 Kueue 继续尝试更优先的规格。
 
 并发准入包含两个主要组件：
@@ -145,7 +145,7 @@ Parent Workload 是作业集成观察准入状态的对象。Variant Workload �
 
 ## 接下来 {#whats-next}
 
-- [设置并发准入](/docs/tasks/manage/setup_concurrent_admission)。
-- 了解 [ClusterQueue 规格顺序](/docs/concepts/cluster_queue#resource-flavors-and-resources)。
-- 阅读[工作负载概念](/docs/concepts/workload)，了解 Parent Workload 和 Variant Workload。
-- 阅读 [`ConcurrentAdmissionPolicy` API 参考](/docs/reference/kueue.v1beta2/#kueue-x-k8s-io-v1beta2-ConcurrentAdmissionPolicy)。
+- [设置并发准入](/zh-cn/docs/tasks/manage/setup_concurrent_admission)。
+- 了解 [ClusterQueue 规格顺序](/zh-cn/docs/concepts/cluster_queue#resource-flavors-and-resources)。
+- 阅读[工作负载概念](/zh-cn/docs/concepts/workload)，了解 Parent Workload 和 Variant Workload。
+- 阅读 [`ConcurrentAdmissionPolicy` API 参考](/zh-cn/docs/reference/kueue.v1beta2/#kueue-x-k8s-io-v1beta2-ConcurrentAdmissionPolicy)。

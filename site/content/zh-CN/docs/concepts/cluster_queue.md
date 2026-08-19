@@ -8,10 +8,10 @@ description: >
 
 ClusterQueue 是一个集群范围的对象，用于管理一组资源池，如 Pod、CPU、内存和硬件加速器。ClusterQueue 定义了：
 
-- ClusterQueue 管理的[资源规格](/docs/concepts/resource_flavor)的配额，包括使用上限和消耗顺序。
+- ClusterQueue 管理的[资源规格](/zh-cn/docs/concepts/resource_flavor)的配额，包括使用上限和消耗顺序。
 - 集群中多个 ClusterQueue 之间的公平共享规则。
 
-只有[批处理管理员](/docs/tasks#batch-administrator)才应创建 `ClusterQueue` 对象。
+只有[批处理管理员](/zh-cn/docs/tasks#batch-administrator)才应创建 `ClusterQueue` 对象。
 
 一个示例 ClusterQueue 如下所示：
 
@@ -35,7 +35,7 @@ spec:
         nominalQuota: 5
 ```
 
-只有在以下条件全部满足时，该 ClusterQueue 才会接纳[工作负载](/docs/concepts/workload)：
+只有在以下条件全部满足时，该 ClusterQueue 才会接纳[工作负载](/zh-cn/docs/concepts/workload)：
 
 - CPU 请求总和小于等于 9。
 - 内存请求总和小于等于 36Gi。
@@ -50,7 +50,7 @@ spec:
 在 ClusterQueue 中，你可以为多种**规格**定义配额，这些规格提供特定的[计算资源](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-types)
 （如 CPU、内存、GPU、Pods 等）。
 
-规格代表某种资源的不同变体（例如，不同型号的 GPU）。您可以通过 [ResourceFlavor 对象](/docs/concepts/resource_flavor)定义规格与节点组的映射关系。
+规格代表某种资源的不同变体（例如，不同型号的 GPU）。您可以通过 [ResourceFlavor 对象](/zh-cn/docs/concepts/resource_flavor)定义规格与节点组的映射关系。
 在 ClusterQueue 中，您可以为每个规格所提供的资源分别设置配额。
 
 在为 ClusterQueue 定义配额时，您可以设置以下值：
@@ -58,17 +58,17 @@ spec:
 - `borrowingLimit`：该 ClusterQueue 允许从同一[队列组](#cohort)中其他 ClusterQueue 未用名义配额中借用的最大配额数量。
 - `lendingLimit`：当本 ClusterQueue 未使用其名义配额时，允许队列组内其他 ClusterQueue 借用的最大配额数量。
 
-在称为[准入](/docs/concepts#admission)的流程中，Kueue 会为[工作负载 Pod 集合](/docs/concepts/workload#pod-sets)分配每个所需资源的规格。
+在称为[准入](/zh-cn/docs/concepts#admission)的流程中，Kueue 会为[工作负载 Pod 集合](/zh-cn/docs/concepts/workload#pod-sets)分配每个所需资源的规格。
 Kueue 会优先分配 ClusterQueue `.spec.resourceGroups[*].flavors` 列表中第一个拥有足够未用 `nominalQuota` 的规格，无论是在本 ClusterQueue 还是其[队列组](#cohort)中。
 
-当为 ClusterQueue 启用[并发准入](/docs/concepts/concurrent_admission)时，
+当为 ClusterQueue 启用[并发准入](/zh-cn/docs/concepts/concurrent_admission)时，
 `.spec.resourceGroups[*].flavors` 的顺序也会定义 ResourceFlavor 偏好：列表中的第一个 ResourceFlavor 是迁移时最优先的 ResourceFlavor。
 Kueue 可以在多个 ResourceFlavor 上并发且独立地尝试准入。
 
 {{% alert title="注意" color="primary" %}}
 在 ClusterQueue 配额中使用 `pods` 资源名来限制可接纳的 Pod 数量。
 
-资源名 `pods` 是[保留名](/docs/concepts/workload/#reserved-resource-names)，不能在 Pod 的 requests 字段中指定。
+资源名 `pods` 是[保留名](/zh-cn/docs/concepts/workload/#reserved-resource-names)，不能在 Pod 的 requests 字段中指定。
 Kueue 会自动计算一个 Workload 需要的 Pod 数量。
 {{% /alert %}}
 
@@ -180,11 +180,11 @@ namespaceSelector:
 
 您可以在 ClusterQueue 中使用
 `.spec.queueingStrategy` 字段设置不同的排队策略。排队策略决定了工作负载在 ClusterQueue 中的顺序以及在失败的
-[admission](/docs/concepts#admission) 尝试后如何重新排队。
+[admission](/zh-cn/docs/concepts#admission) 尝试后如何重新排队。
 
 以下是支持的排队策略：
 
-- `StrictFIFO`：工作负载首先按 [优先级](/docs/concepts/workload#priority)排序，
+- `StrictFIFO`：工作负载首先按 [优先级](/zh-cn/docs/concepts/workload#priority)排序，
   然后按创建时间 `.metadata.creationTimestamp` 排序。无法被接纳的旧工作负载会阻止新工作负载，即使新工作负载适合可用配额。
 - `BestEffortFIFO`：工作负载按与 `StrictFIFO` 相同的方式排序。然而，
   无法被接纳的旧工作负载不会阻止新工作负载，只要新工作负载适合可用配额。
@@ -224,11 +224,11 @@ ClusterQueue 借用配额。
 {{% alert title="注意" color="primary" %}}
 在 cohort 中，Kueue 优先安排将适合 under `nominalQuota` 的工作负载。
 默认情况下，如果多个工作负载需要 `borrowing`，Kueue 将尝试安排优先级更高的工作负载
-[priority](/docs/concepts/workload#priority) 首先。
+[priority](/zh-cn/docs/concepts/workload#priority) 首先。
 如果 feature gate `PrioritySortingWithinCohort=false` 设置，Kueue 将尝试安排最早的 `.metadata.creationTimestamp` 的工作负载。
 {{% /alert %}}
 
-你可以设置一个 [`flavorFungibility`](/docs/concepts/cluster_queue#flavorfungibility) 来影响一些规格选择和借用的语义。
+你可以设置一个 [`flavorFungibility`](/zh-cn/docs/concepts/cluster_queue#flavorfungibility) 来影响一些规格选择和借用的语义。
 
 ### 借用示例 {#borrowing-example}
 
@@ -436,7 +436,7 @@ spec:
 
 请注意，新进入的工作负载可以预留 ClusterQueue 和 cohort 中的 Workloads。
 
-阅读 [Preemption](/docs/concepts/preemption) 以了解 Kueue 实现以预留尽可能少的工作负载的启发式方法。
+阅读 [Preemption](/zh-cn/docs/concepts/preemption) 以了解 Kueue 实现以预留尽可能少的工作负载的启发式方法。
 
 ## FlavorFungibility {#flavorfungibility}
 
@@ -477,7 +477,7 @@ spec:
 
 ## 停止策略 {#stoppolicy}
 
-StopPolicy 允许集群管理员通过在 [spec](/docs/reference/kueue.v1beta1/#kueue-x-k8s-io-v1beta1-ClusterQueueSpec) 中设置其值来临时停止 ClusterQueue 中工作负载的接纳，如下所示：
+StopPolicy 允许集群管理员通过在 [spec](/zh-cn/docs/reference/kueue.v1beta1/#kueue-x-k8s-io-v1beta1-ClusterQueueSpec) 中设置其值来临时停止 ClusterQueue 中工作负载的接纳，如下所示：
 
 ```yaml
 apiVersion: kueue.x-k8s.io/v1beta2
@@ -497,11 +497,11 @@ spec:
 
 AdmissionChecks 是一个机制，允许 Kueue 在接纳工作负载之前考虑其他标准。
 
-例如，使用 admission checks 的 ClusterQueue 配置，请参阅 [Admission Checks](/docs/concepts/admission_check#usage)。
+例如，使用 admission checks 的 ClusterQueue 配置，请参阅 [Admission Checks](/zh-cn/docs/concepts/admission_check#usage)。
 
 ## 下一步是什么？ {#what-next}
 
-- 创建 [local queues](/docs/concepts/local_queue)
-- 如果你还没有，请创建 [resource flavors](/docs/concepts/resource_flavor)
-- 学习如何 [administer cluster quotas](/docs/tasks/manage/administer_cluster_quotas)
-- 阅读 [API reference](/docs/reference/kueue.v1beta1/#kueue-x-k8s-io-v1beta1-ClusterQueue) for `ClusterQueue`
+- 创建 [local queues](/zh-cn/docs/concepts/local_queue)
+- 如果你还没有，请创建 [resource flavors](/zh-cn/docs/concepts/resource_flavor)
+- 学习如何 [administer cluster quotas](/zh-cn/docs/tasks/manage/administer_cluster_quotas)
+- 阅读 [API reference](/zh-cn/docs/reference/kueue.v1beta1/#kueue-x-k8s-io-v1beta1-ClusterQueue) for `ClusterQueue`

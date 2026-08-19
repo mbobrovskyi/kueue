@@ -10,8 +10,8 @@ description: >
 [ClusterAutoscaler](https://github.com/kubernetes/autoscaler/blob/4872bddce2bcc5b4a5f6a3d569111c11b8a2baf4/cluster-autoscaler/provisioningrequest/apis/autoscaling.x-k8s.io/v1beta1/types.go#L41)
 定义的 API。
 
-Kueue 通过 [Provisioning Admission Check Controller](/docs/admission-check-controllers/provisioning/)
-创建 ProvisioningRequest，并将其视为[准入检查](/docs/concepts/admission_check/)。
+Kueue 通过 [Provisioning Admission Check Controller](/zh-cn/docs/admission-check-controllers/provisioning/)
+创建 ProvisioningRequest，并将其视为[准入检查](/zh-cn/docs/concepts/admission_check/)。
 为了让 Kueue 准入 Workload，为其创建的 ProvisioningRequest 需要成功。
 
 ## 开始之前 {#before-you-begin}
@@ -23,12 +23,12 @@ Kueue 通过 [Provisioning Admission Check Controller](/docs/admission-check-con
   如果你使用 GKE，你的集群应该运行版本 `1.28.3-gke.1098000` 或更新版本。
 - 你使用支持 ProvisioningRequest 的节点类型。这可能因云提供商而异。
 - Kueue 的版本是 `v0.5.3` 或更新版本。
-- 你已在[特性门控配置](/docs/installation/#change-the-feature-gates-configuration)中启用了 `ProvisioningACC`。
+- 你已在[特性门控配置](/zh-cn/docs/installation/#change-the-feature-gates-configuration)中启用了 `ProvisioningACC`。
   对于 Kueue `v0.7.0` 或更新版本，此特性门控默认启用。
 
 ## 识别你的作业对应的 Provisioning Request {#identifying-the-provisioning-request-for-your-job}
 
-请参阅 [Job 故障排除指南](/docs/tasks/troubleshooting/troubleshooting_jobs/#identifying-the-workload-for-your-job)，
+请参阅 [Job 故障排除指南](/zh-cn/docs/tasks/troubleshooting/troubleshooting_jobs/#identifying-the-workload-for-your-job)，
 了解如何识别你的作业对应的 Workload。
 
 你可以运行以下命令在 Workload 状态的 `admissionChecks` 字段中查看
@@ -214,7 +214,7 @@ Status:
 ```
 
 你可以检查 ClusterQueue 和 LocalQueue 是否准备好准入你的 Workload。
-有关更多详细信息，请参阅[队列故障排除](/docs/tasks/troubleshooting/troubleshooting_queues/)。
+有关更多详细信息，请参阅[队列故障排除](/zh-cn/docs/tasks/troubleshooting/troubleshooting_queues/)。
 
 ### c. 确保准入检查处于活跃状态 {#c-ensure-the-admission-check-is-active}
 
@@ -225,7 +225,7 @@ kubectl describe admissionchecks ADMISSIONCHECK_NAME
 ```
 
 其中 `ADMISSIONCHECK_NAME` 是在你的 ClusterQueue 规范中配置的名称。
-有关更多详细信息，请参阅[准入检查文档](/docs/concepts/admission_check/)。
+有关更多详细信息，请参阅[准入检查文档](/zh-cn/docs/concepts/admission_check/)。
 
 准入检查的状态应该类似于：
 

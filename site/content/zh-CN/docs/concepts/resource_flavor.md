@@ -28,7 +28,7 @@ description: >
 要将 ResourceFlavor 与集群中某一部分节点关联，可以在 `.spec.nodeLabels` 字段中配置能唯一标识这些节点的标签。
 如果你使用 [cluster autoscaler](https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler)（或类似控制器），请确保控制器在添加新节点时会添加这些标签。
 
-为了保证 [Workload](/docs/concepts/workload) 中的 Pod 运行在 Kueue 选定的 flavor 所关联的节点上，Kueue 会执行以下步骤：
+为了保证 [Workload](/zh-cn/docs/concepts/workload) 中的 Pod 运行在 Kueue 选定的 flavor 所关联的节点上，Kueue 会执行以下步骤：
 
 1. 在接纳 Workload 时，Kueue 会将 PodSpec 中的 [`.nodeSelector`](https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector) 和 [`.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution`](https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity) 字段与 ResourceFlavor 的标签进行匹配。
 不匹配 Workload 节点亲和性的 `ResourceFlavors` 无法分配给 Workload 的 podSet。
@@ -48,7 +48,7 @@ description: >
 {{< include "examples/admin/resource-flavor-tolerations.yaml" "yaml" >}}
 
 定义如上 ResourceFlavor 时，应设置以下值：
-- `.metadata.name` 字段，用于在 [ClusterQueue](/docs/concepts/cluster_queue) 的 `.spec.resourceGroups[*].flavors[*].name` 字段中引用 ResourceFlavor。
+- `.metadata.name` 字段，用于在 [ClusterQueue](/zh-cn/docs/concepts/cluster_queue) 的 `.spec.resourceGroups[*].flavors[*].name` 字段中引用 ResourceFlavor。
 - `spec.nodeLabels` 将 ResourceFlavor 与某个节点或节点子集关联。
 - `spec.tolerations` 为需要 GPU 的 Pod 添加指定的容忍度。
 
@@ -64,9 +64,9 @@ description: >
 ResourceFlavor 上的污点与 [节点污点](https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/taint-and-toleration/) 类似，
 但只支持 `NoExecute` 和 `NoSchedule` 效果，`PreferNoSchedule` 会被忽略。
 
-Kueue 要[接纳](/docs/concepts#admission) Workload 使用 ResourceFlavor，Workload 的 PodSpec 必须包含相应的容忍度。
+Kueue 要[接纳](/zh-cn/docs/concepts#admission) Workload 使用 ResourceFlavor，Workload 的 PodSpec 必须包含相应的容忍度。
 另一方面，如果 ResourceFlavor 的 `.spec.tolerations` 字段也设置了匹配的容忍度，
-则在[接纳](/docs/concepts#admission)期间不会考虑污点。
+则在[接纳](/zh-cn/docs/concepts#admission)期间不会考虑污点。
 与 [ResourceFlavor 容忍度实现自动调度](#ResourceFlavor-容忍度实现自动调度)不同，
 Kueue 不会为 flavor 污点自动添加容忍度。
 
@@ -75,7 +75,7 @@ Kueue 不会为 flavor 污点自动添加容忍度。
 {{< include "examples/admin/resource-flavor-taints.yaml" "yaml" >}}
 
 定义如上 ResourceFlavor 时，应设置以下值：
-- `.metadata.name` 字段，用于在 [ClusterQueue](/docs/concepts/cluster_queue) 的 `.spec.resourceGroups[*].flavors[*].name` 字段中引用 ResourceFlavor。
+- `.metadata.name` 字段，用于在 [ClusterQueue](/zh-cn/docs/concepts/cluster_queue) 的 `.spec.resourceGroups[*].flavors[*].name` 字段中引用 ResourceFlavor。
 - `spec.nodeLabels` 将 ResourceFlavor 与某个节点或节点子集关联。
 - `spec.nodeTaints` 限制 ResourceFlavor 的使用。
 这些污点通常应与关联节点的污点一致。
@@ -89,5 +89,5 @@ Kueue 不会为 flavor 污点自动添加容忍度。
 
 ## 下一步？
 
-- 了解[集群队列（cluster queues）](/docs/concepts/cluster_queue)。
-- 阅读 `ResourceFlavor` 的 [API 参考](/docs/reference/kueue.v1beta1/#kueue-x-k8s-io-v1beta1-ResourceFlavor)。
+- 了解[集群队列（cluster queues）](/zh-cn/docs/concepts/cluster_queue)。
+- 阅读 `ResourceFlavor` 的 [API 参考](/zh-cn/docs/reference/kueue.v1beta1/#kueue-x-k8s-io-v1beta1-ResourceFlavor)。

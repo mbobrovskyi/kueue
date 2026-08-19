@@ -9,7 +9,7 @@ description: >
 
 本页面向您展示如何在启用了 Kueue 的 Kubernetes 集群中运行 Job。
 
-本页面的目标受众是[批量用户](/docs/tasks#batch-user)。
+本页面的目标受众是[批量用户](/zh-cn/docs/tasks#batch-user)。
 
 ## 开始之前 {#before-you-begin}
 

@@ -10,7 +10,7 @@ description: >
 本页面向你展示如何配置自定义指标标签，这些标签将 Kubernetes 标签或注解从
 ClusterQueue、LocalQueue 和 Cohort 提升为额外的 Prometheus 指标标签维度。
 
-本页面的目标受众是[批处理管理员](/docs/tasks#batch-administrator)。
+本页面的目标受众是[批处理管理员](/zh-cn/docs/tasks#batch-administrator)。
 
 ## 开始之前
 
@@ -18,13 +18,13 @@ ClusterQueue、LocalQueue 和 Cohort 提升为额外的 Prometheus 指标标签�
 
 - 一个 Kubernetes 集群正在运行。
 - kubectl 命令行工具能够与你的集群通信。
-- [Kueue 已安装](/docs/installation)。
-- Prometheus 已[设置](/docs/tasks/manage/observability/setup_prometheus)以抓取 Kueue 指标。
+- [Kueue 已安装](/zh-cn/docs/installation)。
+- Prometheus 已[设置](/zh-cn/docs/tasks/manage/observability/setup_prometheus)以抓取 Kueue 指标。
 
 ## 配置自定义标签
 
 自定义指标标签需要 `CustomMetricLabels` 特性门控，它是 Alpha 级别且默认禁用。
-关于如何启用特性门控的详情，请参见[安装](/docs/installation/#change-the-feature-gates-configuration)。
+关于如何启用特性门控的详情，请参见[安装](/zh-cn/docs/installation/#change-the-feature-gates-configuration)。
 
 在 Kueue 控制器配置中添加一个 `metrics.customLabels` 部分。
 每个条目定义了 ClusterQueue、LocalQueue 和 Cohort 指标上的一个额外 Prometheus 标签维度。
@@ -96,6 +96,6 @@ metrics:
 
 ## 下一步
 
-- 查看 [Prometheus 指标](/docs/reference/metrics)，获取 Kueue 指标的完整列表。
-- 查看[常用 Grafana 查询](/docs/tasks/manage/observability/common_grafana_queries)，
+- 查看 [Prometheus 指标](/zh-cn/docs/reference/metrics)，获取 Kueue 指标的完整列表。
+- 查看[常用 Grafana 查询](/zh-cn/docs/tasks/manage/observability/common_grafana_queries)，
   获取用于在 Grafana 中监控 Kueue 的 PromQL 查询。

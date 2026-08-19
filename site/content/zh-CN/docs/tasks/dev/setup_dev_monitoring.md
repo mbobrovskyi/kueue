@@ -9,7 +9,7 @@ description: >
 
 This page shows how to set up Prometheus for development, debugging, and testing Kueue metrics.
 
-The page is intended for a [platform developer](/docs/tasks#platform-developer).
+The page is intended for a [platform developer](/zh-cn/docs/tasks#platform-developer).
 
 ## Quick start with e2e infrastructure
 
@@ -46,7 +46,7 @@ If you already have a cluster and want to set up Prometheus manually, follow the
 Make sure the following conditions are met:
 
 - A Kubernetes cluster is running.
-- [Kueue is installed](/docs/installation).
+- [Kueue is installed](/zh-cn/docs/installation).
 
 ### 1. Install Prometheus
 
@@ -156,9 +156,9 @@ Verify the optional metrics are available:
 kueue_cluster_queue_nominal_quota
 ```
 
-See [Prometheus Metrics](/docs/reference/metrics#optional-metrics) for the full list of optional metrics.
+See [Prometheus Metrics](/zh-cn/docs/reference/metrics#optional-metrics) for the full list of optional metrics.
 
 ## What's next
 
-- See [Common Grafana Queries](/docs/tasks/manage/observability/common_grafana_queries) for PromQL queries to monitor Kueue in Grafana.
-- See [Setup Prometheus](/docs/tasks/manage/observability/setup_prometheus) for production setup instructions.
+- See [Common Grafana Queries](/zh-cn/docs/tasks/manage/observability/common_grafana_queries) for PromQL queries to monitor Kueue in Grafana.
+- See [Setup Prometheus](/zh-cn/docs/tasks/manage/observability/setup_prometheus) for production setup instructions.

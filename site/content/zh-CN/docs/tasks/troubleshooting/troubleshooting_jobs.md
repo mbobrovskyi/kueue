@@ -9,16 +9,16 @@ description: >
 本文档介绍如何排除挂起的
 [Kubernetes Jobs](https://kubernetes.io/docs/concepts/workloads/controllers/job/)
 的故障，
-但大多数想法可以推广到其他[支持的作业类型](/docs/tasks/run)。
+但大多数想法可以推广到其他[支持的作业类型](/zh-cn/docs/tasks/run)。
 
-请参阅 [Kueue 概览](/docs/overview/#high-level-kueue-operation)
+请参阅 [Kueue 概览](/zh-cn/docs/overview/#high-level-kueue-operation)
 以可视化协作运行 Job 的组件。
 
 在本文档中，假设你的 Job 名为 `my-job`，位于 `my-namespace` 命名空间中。
 
 ## 识别你的 Job 对应的 Workload {#identifying-the-workload-for-your-job}
 
-对于每个 Job，Kueue 创建一个 [Workload](/docs/concepts/workload) 对象来保存
+对于每个 Job，Kueue 创建一个 [Workload](/zh-cn/docs/concepts/workload) 对象来保存
 Job 准入的详细信息，无论它是否被准入。
 
 要找到 Job 对应的 Workload，你可以使用以下任一步骤：
@@ -77,7 +77,7 @@ kubectl describe workload -n my-namespace job-my-job-19797
 
 ## 我的 Job 使用什么 ResourceFlavors？ {#what-resourceflavors-is-my-job-using}
 
-一旦你[识别了你的 Job 对应的 Workload](/docs/tasks/troubleshooting/troubleshooting_jobs/#identifying-the-workload-for-your-job)，
+一旦你[识别了你的 Job 对应的 Workload](/zh-cn/docs/tasks/troubleshooting/troubleshooting_jobs/#identifying-the-workload-for-your-job)，
 运行以下命令来获取你的 Workload 的所有详细信息：
 
 ```sh
@@ -223,8 +223,8 @@ spec:
 
 ### 等待准入检查 {#pending-admission-check}
 
-当 ClusterQueue 配置了[准入检查](/docs/concepts/admission_check)时，例如
-[ProvisioningRequest](/docs/admission-check-controllers/provisioning) 或 [MultiKueue](/docs/concepts/multikueue)，
+当 ClusterQueue 配置了[准入检查](/zh-cn/docs/concepts/admission_check)时，例如
+[ProvisioningRequest](/zh-cn/docs/admission-check-controllers/provisioning) 或 [MultiKueue](/zh-cn/docs/concepts/multikueue)，
 Workload 可能会保持类似以下的状态，直到准入检查通过：
 
 ```yaml
@@ -249,8 +249,8 @@ status:
 ### 未尝试的 Workload {#unattempted-workload}
 
 当使用具有 `StrictFIFO`
-[`queueingStrategy`](/docs/concepts/cluster_queue/#queueing-strategy) 的
-[ClusterQueue](/docs/concepts/cluster_queue) 时，Kueue 只尝试准入每个 ClusterQueue 的头部。
+[`queueingStrategy`](/zh-cn/docs/concepts/cluster_queue/#queueing-strategy) 的
+[ClusterQueue](/zh-cn/docs/concepts/cluster_queue) 时，Kueue 只尝试准入每个 ClusterQueue 的头部。
 因此，如果 Kueue 没有尝试准入 Workload，Workload 状态可能不包含任何条件。
 
 ### 配置错误的 LocalQueue 或 ClusterQueue {#misconfigured-localqueue-or-clusterqueue}
@@ -268,12 +268,12 @@ status:
     type: QuotaReserved
 ```
 
-请参阅[队列故障排除](/docs/tasks/troubleshooting/troubleshooting_queues)了解为什么
+请参阅[队列故障排除](/zh-cn/docs/tasks/troubleshooting/troubleshooting_queues)了解为什么
 ClusterQueue 或 LocalQueue 不活跃。
 
 ## 我的 Job 是否被抢占？ {#is-my-job-preempted}
 
-如果你的 Job 没有运行，并且你的 ClusterQueue 启用了[抢占](/docs/concepts/cluster_queue/#preemption)，
+如果你的 Job 没有运行，并且你的 ClusterQueue 启用了[抢占](/zh-cn/docs/concepts/cluster_queue/#preemption)，
 你应该检查 Kueue 是否抢占了 Workload。
 
 ```yaml

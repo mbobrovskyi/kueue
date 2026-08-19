@@ -9,7 +9,7 @@ description: >
 
 ## 开始之前
 
-查阅 [MultiKueue 安装指南](/docs/tasks/manage/setup_multikueue)以了解如何正确设置 MultiKueue 集群。
+查阅 [MultiKueue 安装指南](/zh-cn/docs/tasks/manage/setup_multikueue)以了解如何正确设置 MultiKueue 集群。
 
 为了简化设置和使用，我们建议至少使用 Kueue v0.11.0 版本以及
 Kubeflow Trainer 至少 v2.0.0 版本。
@@ -21,13 +21,13 @@ Kubeflow Trainer v2 的安装和配置详情。
 TrainJob 是 Kubeflow Trainer v2 的一部分，它引入了一个统一的 API 用于所有训练框架。
 它取代了 Trainer v1 中特定于框架的工作类型（PyTorchJob、TFJob 等）。
 
-对于遗留的 Kubeflow Jobs（v1），请参阅[在多集群中运行 Kubeflow Job](/docs/tasks/run/multikueue/kubeflow/)。
+对于遗留的 Kubeflow Jobs（v1），请参阅[在多集群中运行 Kubeflow Job](/zh-cn/docs/tasks/run/multikueue/kubeflow/)。
 {{% /alert %}}
 
 ## MultiKueue 集成
 
 完成设置后，你可以通过运行一个 TrainJob
-[`sample-trainjob`](/docs/tasks/run/trainjobs/#using-clustertrainingruntime) 来测试它。
+[`sample-trainjob`](/zh-cn/docs/tasks/run/trainjobs/#using-clustertrainingruntime) 来测试它。
 
 {{% alert title="注意" color="primary" %}}
 Kueue 默认将 `spec.managedBy` 字段设置为 `kueue.x-k8s.io/multikueue` 在管理集群上的 TrainJob 中。

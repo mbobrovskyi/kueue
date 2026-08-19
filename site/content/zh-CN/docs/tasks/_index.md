@@ -30,7 +30,7 @@ As a batch administrator, you can learn how to:
 
 ### Batch user
 
-A _batch user_ runs [workloads](/docs/concepts/workload). A typical
+A _batch user_ runs [workloads](/zh-cn/docs/concepts/workload). A typical
 batch user is a researcher, AI/ML engineer, data scientist, among others.
 
 As a batch user, you can learn how to:
@@ -48,7 +48,7 @@ As a batch user, you can learn how to:
 
 ### Serving user
 
-A _serving user_ runs [workloads](/docs/concepts/workload). 
+A _serving user_ runs [workloads](/zh-cn/docs/concepts/workload). 
 A serving user runs serving workloads, for example, to expose a trained AI/ML model for inference.
 
 As a serving user, you can learn how to:

@@ -8,7 +8,7 @@ description: >
 
 此页面向你展示如何使用常见的 PromQL 查询在 Grafana 中监控 Kueue 指标。
 
-此页面的目标读者为[批处理管理员](/docs/tasks#batch-administrator)。
+此页面的目标读者为[批处理管理员](/zh-cn/docs/tasks#batch-administrator)。
 
 ## 开始之前
 
@@ -16,15 +16,15 @@ description: >
 
 - Kubernetes 集群正在运行。
 - kubectl 命令行工具能够与你的集群通信。
-- [Kueue 已安装](/docs/installation)。
+- [Kueue 已安装](/zh-cn/docs/installation)。
 - [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus) 已安装。
-- Kueue Prometheus 指标已启用（参见[设置 Prometheus](/docs/tasks/manage/observability/setup_prometheus)）。
+- Kueue Prometheus 指标已启用（参见[设置 Prometheus](/zh-cn/docs/tasks/manage/observability/setup_prometheus)）。
 
 ## 配额利用率
 
 {{% alert title="注意" color="primary" %}}
 本部分的查询需要在 Kueue 配置中设置 `metrics.enableClusterQueueResources: true`。
-详情参见[安装](/docs/installation/#install-a-custom-configured-released-version)。
+详情参见[安装](/zh-cn/docs/installation/#install-a-custom-configured-released-version)。
 {{% /alert %}}
 
 要监控 ClusterQueue 中正在使用的 CPU 配额百分比：
@@ -153,7 +153,7 @@ sum by (cluster_queue, reason) (
 )
 ```
 
-请参阅 [Prometheus 指标](/docs/reference/metrics)获取完整的 `reason` 标签值列表。
+请参阅 [Prometheus 指标](/zh-cn/docs/reference/metrics)获取完整的 `reason` 标签值列表。
 
 ## 集群队列状态
 
@@ -171,5 +171,5 @@ kueue_cluster_queue_status{status!="active"} == 1
 
 ## 下一步
 
-- 请参阅 [Grafana 中的待处理工作负载](/docs/tasks/manage/monitor_pending_workloads/pending_workloads_in_grafana)，
+- 请参阅 [Grafana 中的待处理工作负载](/zh-cn/docs/tasks/manage/monitor_pending_workloads/pending_workloads_in_grafana)，
   了解如何使用按需 API 创建可视化仪表板。

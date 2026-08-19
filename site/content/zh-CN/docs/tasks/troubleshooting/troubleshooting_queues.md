@@ -8,7 +8,7 @@ description: >
 
 ## 为什么 LocalQueue 中没有 workload 被准入？ {#why-no-workloads-are-admitted-in-the-localqueue}
 
-[LocalQueue](/docs/concepts/local_queue) 的状态包含 LocalQueue 上任何配置问题的详细信息，
+[LocalQueue](/zh-cn/docs/concepts/local_queue) 的状态包含 LocalQueue 上任何配置问题的详细信息，
 作为 `Active` 条件的一部分。
 
 运行以下命令查看 LocalQueue 的状态：
@@ -34,7 +34,7 @@ status:
 
 ## 为什么 ClusterQueue 中没有 workload 被准入？ {#why-no-workloads-are-admitted-in-the-clusterqueue}
 
-[ClusterQueue](/docs/concepts/cluster_queue) 的状态包含 ClusterQueue 上任何配置问题的详细信息，
+[ClusterQueue](/zh-cn/docs/concepts/cluster_queue) 的状态包含 ClusterQueue 上任何配置问题的详细信息，
 作为 `Active` 条件的一部分。
 
 运行以下命令查看 ClusterQueue 的状态：
@@ -57,7 +57,7 @@ status:
 ```
 
 在上面的示例中，`Active` 条件的状态为 `False`，因为配置的 flavor 不存在。
-阅读[管理 ClusterQueue](/docs/tasks/manage/administer_cluster_quotas)了解如何配置 ClusterQueue。
+阅读[管理 ClusterQueue](/zh-cn/docs/tasks/manage/administer_cluster_quotas)了解如何配置 ClusterQueue。
 
 如果 ClusterQueue 配置正确，状态将类似于以下内容：
 
@@ -74,4 +74,4 @@ status:
 
 如果 ClusterQueue 的 `Active` 条件状态为 `True`，但你仍然没有观察到 workload 被准入，
 那么问题更可能出现在单个 workload 上。
-阅读 [Job 故障排除](/docs/tasks/troubleshooting/troubleshooting_jobs)了解为什么单个作业无法被准入。
+阅读 [Job 故障排除](/zh-cn/docs/tasks/troubleshooting/troubleshooting_jobs)了解为什么单个作业无法被准入。
