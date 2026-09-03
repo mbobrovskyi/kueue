@@ -2,6 +2,8 @@ pkg/controller/core/clusterqueue_controller.go
   h_47cee5fa694435 397
 pkg/cache/queue/manager_test.go
   h_47cee5fa694435 265,787
+pkg/cache/queue/manager.go
+  h_47cee5fa694435 410
 ---
 {
   "schema_version": "authorship/3.0.0",
