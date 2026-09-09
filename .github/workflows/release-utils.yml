@@ -200,15 +200,15 @@ jobs:
           ref: main
           persist-credentials: false
 
-      - name: Set up Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: 'go.mod'
-
       - name: Install release-notes tool
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          go install k8s.io/release/cmd/release-notes@v0.20.1
-          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+          gh release download v0.20.1 \
+            --repo kubernetes/release \
+            --pattern 'release-notes-amd64-linux' \
+            --output /usr/local/bin/release-notes
+          chmod +x /usr/local/bin/release-notes
 
       - name: Run Sync Notes
         id: sync
