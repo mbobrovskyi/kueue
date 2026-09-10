@@ -396,7 +396,6 @@ artifacts: verify-git-tag clean-artifacts kustomize helm-chart-package prepare-m
 	$(KUSTOMIZE) build config/components/map -o $(ARTIFACTS)/workload-map.yaml
 	$(KUSTOMIZE) build config/components/crd/alpha -o $(ARTIFACTS)/alpha-crds.yaml
 	@$(call clean-manifests)
-	CGO_ENABLED=$(CGO_ENABLED) GO_CMD="$(GO_CMD)" LD_FLAGS="$(LD_FLAGS)" BUILD_PATH="$(ARTIFACTS)" BUILD_NAME=kubectl-kueue PLATFORMS="$(CLI_PLATFORMS)" ./hack/multiplatform-build.sh ./cmd/kueuectl/main.go
 
 .PHONY: release-artifacts
 release-artifacts: ## Generate release artifacts.
