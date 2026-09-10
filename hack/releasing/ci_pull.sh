@@ -134,17 +134,17 @@ if [ "$LAST_SUPPORT_MINOR" -lt 0 ]; then
   LAST_SUPPORT_MINOR=0  # Prevent negative minors
 fi
 
-RELEASE_ISSUE_NAME="Release ${RELEASE_VERSION}"
+RELEASE_ISSUE_NAME="📦 Release ${RELEASE_VERSION}"
 
 RELEASE_ISSUE_NUMBER=$(gh issue list --repo="${KUBERNETES_SIGS_KUEUE_MAIN_REPO_ORG}/${KUBERNETES_SIGS_KUEUE_MAIN_REPO_NAME}" --search "in:title ${RELEASE_ISSUE_NAME}" | awk '{print $1}' || true)
 if [ -z "$RELEASE_ISSUE_NUMBER" ]; then
-  echo "!!! No release issue found for version ${RELEASE_VERSION}. Please create 'Release ${RELEASE_VERSION}' issue first."
+  echo "!!! No release issue found for version ${RELEASE_VERSION}. Please create '📦 Release ${RELEASE_VERSION}' issue first."
   exit 1
 fi
 
 RELEASE_ISSUE=$(gh issue view "${RELEASE_ISSUE_NUMBER}" --repo="${KUBERNETES_SIGS_KUEUE_MAIN_REPO_ORG}/${KUBERNETES_SIGS_KUEUE_MAIN_REPO_NAME}" --json body || true)
 if [ -z "$RELEASE_ISSUE" ]; then
-  echo "!!! No release issue found for version ${RELEASE_VERSION}. Please create 'Release ${RELEASE_VERSION}' issue first."
+  echo "!!! No release issue found for version ${RELEASE_VERSION}. Please create '📦 Release ${RELEASE_VERSION}' issue first."
   exit 1
 fi
 
