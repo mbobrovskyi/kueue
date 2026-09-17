@@ -177,6 +177,12 @@ jobs:
             exit 1
           fi
 
+          PATCH=$(echo "$VERSION" | grep -oE '[0-9]+$')
+          if [ "$COMMAND" = "merge-main-into-website" ] && [ "$PATCH" != "0" ]; then
+            echo "error_message=❌ \`/merge-main-into-website\` is only applicable for major and minor releases, not patch releases." >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
       - name: Report Parse Failure
         if: ${{ failure() }}
         uses: ./.github/actions/report-result
