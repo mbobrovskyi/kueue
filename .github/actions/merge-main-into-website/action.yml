@@ -15,4 +15,27 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
+        # Configure git identity and credentials
+        git config --global user.name "kueue-release-bot"
+        git config --global user.email "kueue-release-bot@kubernetes.io"
+        gh auth setup-git
+
+        # Fetch the latest state of all branches
+        git fetch origin
+
+        # Reset the local website branch to match origin/website
+        git checkout -B website origin/website
+
+        # Merge main into website, preferring main on conflicts
+        MERGE_OUTPUT=$(git merge -X theirs origin/main 2>&1) || {
+          echo "message=❌ Failed to merge the main branch into the website branch: $MERGE_OUTPUT" >> "$GITHUB_OUTPUT"
+          exit 1
+        }
+
+        # Push the updated website branch to origin
+        git push origin website || {
+          echo "message=❌ Failed to push the website branch to origin." >> "$GITHUB_OUTPUT"
+          exit 1
+        }
+
         echo "message=✅ Merged the main branch into the website branch." >> "$GITHUB_OUTPUT"
