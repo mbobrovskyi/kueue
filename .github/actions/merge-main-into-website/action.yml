@@ -28,10 +28,21 @@ runs:
 
         HEAD_BEFORE=$(git rev-parse HEAD)
 
-        # Merge main into website, preferring main on conflicts
+        # Merge main into website, preferring main on conflicts.
+        # -X theirs resolves content conflicts; rename/delete conflicts need manual resolution.
         if ! git merge -X theirs origin/main; then
-          echo "message=❌ Failed to merge the main branch into the website branch." >> "$GITHUB_OUTPUT"
-          exit 1
+          git ls-files --unmerged | awk '{print $4}' | sort -u | while IFS= read -r f; do
+            if [ -f "$f" ]; then
+              git checkout --theirs -- "$f" 2>/dev/null || true
+              git add -- "$f"
+            else
+              git rm --cached -- "$f" 2>/dev/null || true
+            fi
+          done
+          if ! git commit --no-edit; then
+            echo "message=❌ Failed to merge the main branch into the website branch." >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
         fi
 
         HEAD_AFTER=$(git rev-parse HEAD)
