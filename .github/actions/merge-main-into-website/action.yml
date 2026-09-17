@@ -26,16 +26,25 @@ runs:
         # Reset the local website branch to match origin/website
         git checkout -B website origin/website
 
+        HEAD_BEFORE=$(git rev-parse HEAD)
+
         # Merge main into website, preferring main on conflicts
-        MERGE_OUTPUT=$(git merge -X theirs origin/main 2>&1) || {
-          echo "message=❌ Failed to merge the main branch into the website branch: $MERGE_OUTPUT" >> "$GITHUB_OUTPUT"
+        if ! git merge -X theirs origin/main; then
+          echo "message=❌ Failed to merge the main branch into the website branch." >> "$GITHUB_OUTPUT"
           exit 1
-        }
+        fi
+
+        HEAD_AFTER=$(git rev-parse HEAD)
+
+        if [ "$HEAD_BEFORE" = "$HEAD_AFTER" ]; then
+          echo "message=✅ The website branch is already up to date with the main branch." >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
 
         # Push the updated website branch to origin
-        git push origin website || {
+        if ! git push origin website; then
           echo "message=❌ Failed to push the website branch to origin." >> "$GITHUB_OUTPUT"
           exit 1
-        }
+        fi
 
         echo "message=✅ Merged the main branch into the website branch." >> "$GITHUB_OUTPUT"
