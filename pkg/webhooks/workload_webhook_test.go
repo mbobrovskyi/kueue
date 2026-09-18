@@ -29,7 +29,6 @@ import (
 	metav1validation "k8s.io/apimachinery/pkg/apis/meta/v1/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/component-base/featuregate"
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	kueue "sigs.k8s.io/kueue/apis/kueue/v1beta2"
@@ -48,6 +47,21 @@ const (
 	testWorkloadNamespace = "test-ns"
 )
 
+// quotaReservedWithoutAdmission builds a Workload with the QuotaReserved
+// condition and no status.admission.
+func quotaReservedWithoutAdmission(now time.Time) *kueue.Workload {
+	wl := utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).
+		PodSets(*utiltestingapi.MakePodSet("driver", 1).Obj()).Obj()
+	wl.Status.Conditions = []metav1.Condition{{
+		Type:               kueue.WorkloadQuotaReserved,
+		Status:             metav1.ConditionTrue,
+		Reason:             "AdmittedByTest",
+		Message:            "admitted",
+		LastTransitionTime: metav1.NewTime(now),
+	}}
+	return wl
+}
+
 func TestValidateWorkload(t *testing.T) {
 	now := time.Now().Truncate(time.Second)
 	specPath := field.NewPath("spec")
@@ -60,6 +74,7 @@ func TestValidateWorkload(t *testing.T) {
 		featureGates map[featuregate.Feature]bool
 		workload     *kueue.Workload
 		wantErr      error
+		wantDetail   string
 		wantWarnings admission.Warnings
 	}{
 		"valid": {
@@ -67,6 +82,12 @@ func TestValidateWorkload(t *testing.T) {
 				*utiltestingapi.MakePodSet("driver", 1).Obj(),
 				*utiltestingapi.MakePodSet("workers", 100).Obj(),
 			).Obj(),
+		},
+		"quota reserved without an admission is refused, not a panic": {
+			workload: quotaReservedWithoutAdmission(now),
+			wantErr: field.ErrorList{
+				&field.Error{Type: field.ErrorTypeRequired, Field: "status.admission"},
+			}.ToAggregate(),
 		},
 		"should have a valid podSet name in status assignment": {
 			workload: utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).
@@ -91,6 +112,7 @@ func TestValidateWorkload(t *testing.T) {
 			wantErr: field.ErrorList{
 				field.Invalid(statusPath.Child("admission", "podSetAssignments").Index(0).Child("resourceUsage").Key(string(corev1.ResourceCPU)), nil, ""),
 			}.ToAggregate(),
+			wantDetail: "is not a multiple of 3",
 		},
 		"should not request num-pods resource": {
 			workload: utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).
@@ -413,7 +435,7 @@ func TestValidateWorkload(t *testing.T) {
 									Operator:          corev1.TolerationOpEqual,
 									Value:             "t1v",
 									Effect:            corev1.TaintEffectNoExecute,
-									TolerationSeconds: ptr.To[int64](5),
+									TolerationSeconds: new(int64(5)),
 								},
 							},
 							NodeSelector: map[string]string{"type": "first"},
@@ -428,7 +450,7 @@ func TestValidateWorkload(t *testing.T) {
 									Operator:          corev1.TolerationOpEqual,
 									Value:             "t2v",
 									Effect:            corev1.TaintEffectNoExecute,
-									TolerationSeconds: ptr.To[int64](10),
+									TolerationSeconds: new(int64(10)),
 								},
 							},
 							NodeSelector: map[string]string{"type": "second"},
@@ -685,18 +707,50 @@ func TestValidateWorkload(t *testing.T) {
 				field.Invalid(specPath.Child("podSets"), 1, ""),
 			}.ToAggregate(),
 		},
+		"elastic partial scale-up first-create shape (one minCount podSet) is accepted": {
+			featureGates: map[featuregate.Feature]bool{
+				features.ElasticJobsViaWorkloadSlices:                          true,
+				features.ElasticJobsViaWorkloadSlicesWithPartialReplicaScaleUp: true,
+			},
+			workload: utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).
+				Annotation(workloadslicing.EnabledAnnotationKey, workloadslicing.EnabledAnnotationValue).
+				PodSets(*utiltestingapi.MakePodSet("main", 10).SetMinimumCount(5).Obj()).
+				Obj(),
+			wantErr: nil,
+		},
+		"elastic partial scale-up probe shape (multiple minCount podSets) is accepted": {
+			featureGates: map[featuregate.Feature]bool{
+				features.ElasticJobsViaWorkloadSlices:                          true,
+				features.ElasticJobsViaWorkloadSlicesWithPartialReplicaScaleUp: true,
+			},
+			workload: utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).
+				Annotation(workloadslicing.EnabledAnnotationKey, workloadslicing.EnabledAnnotationValue).
+				PodSets(
+					*utiltestingapi.MakePodSet("group-a", 10).SetMinimumCount(5).Obj(),
+					*utiltestingapi.MakePodSet("group-b", 10).SetMinimumCount(5).Obj(),
+				).
+				Obj(),
+			wantErr: nil,
+		},
+		"non-elastic multiple minCount podSets stay rejected with the partial scale-up gate on": {
+			featureGates: map[featuregate.Feature]bool{
+				features.ElasticJobsViaWorkloadSlices:                          true,
+				features.ElasticJobsViaWorkloadSlicesWithPartialReplicaScaleUp: true,
+			},
+			workload: utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).
+				PodSets(
+					*utiltestingapi.MakePodSet("group-a", 10).SetMinimumCount(5).Obj(),
+					*utiltestingapi.MakePodSet("group-b", 10).SetMinimumCount(5).Obj(),
+				).
+				Obj(),
+			wantErr: field.ErrorList{
+				field.Invalid(specPath.Child("podSets"), 2, ""),
+			}.ToAggregate(),
+		},
 		"non-negative subGroupCount is accepted without warning": {
 			workload: utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).PodSets(
 				*utiltestingapi.MakePodSet("main", 1).SubGroupCount(new(int32(0))).Obj(),
 			).Obj(),
-		},
-		"negative subGroupCount is accepted with a warning": {
-			workload: utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).PodSets(
-				*utiltestingapi.MakePodSet("main", 1).SubGroupCount(new(int32(-1))).Obj(),
-			).Obj(),
-			wantWarnings: admission.Warnings{
-				"spec.podSets[0].topologyRequest.subGroupCount: negative value -1 is deprecated and will be rejected in a future release",
-			},
 		},
 	}
 	for name, tc := range testCases {
@@ -705,6 +759,15 @@ func TestValidateWorkload(t *testing.T) {
 			gotWarnings, gotErr := (&WorkloadWebhook{}).ValidateCreate(t.Context(), tc.workload)
 			if diff := cmp.Diff(tc.wantErr, gotErr, cmpopts.IgnoreFields(field.Error{}, "Detail", "BadValue")); diff != "" {
 				t.Errorf("ValidateCreate() error mismatch (-want +got):\n%s", diff)
+			}
+			if tc.wantDetail != "" {
+				gotErr := ValidateWorkload(tc.workload, nil)
+				if len(gotErr) == 0 {
+					t.Fatalf("expected an error but got none")
+				}
+				if gotErr[0].Detail != tc.wantDetail {
+					t.Errorf("unexpected error detail, want %q got %q", tc.wantDetail, gotErr[0].Detail)
+				}
 			}
 			if diff := cmp.Diff(tc.wantWarnings, gotWarnings); diff != "" {
 				t.Errorf("ValidateCreate() warnings mismatch (-want +got):\n%s", diff)
@@ -724,6 +787,18 @@ func TestValidateWorkloadUpdate(t *testing.T) {
 		wantErr       error
 		wantWarnings  admission.Warnings
 	}{
+		"an update may not put a workload in quota reserved with no admission": {
+			before: utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).
+				PodSets(*utiltestingapi.MakePodSet("driver", 1).Obj()).Obj(),
+			after: quotaReservedWithoutAdmission(now),
+			wantErr: field.ErrorList{
+				&field.Error{Type: field.ErrorTypeRequired, Field: "status.admission"},
+			}.ToAggregate(),
+		},
+		"a workload already in that state stays updatable so it can be removed": {
+			before: quotaReservedWithoutAdmission(now),
+			after:  quotaReservedWithoutAdmission(now),
+		},
 		"reclaimable pod count can change up": {
 			before: utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).
 				PodSets(
@@ -905,7 +980,7 @@ func TestValidateWorkloadUpdate(t *testing.T) {
 				PodSets(*utiltestingapi.MakePodSet("ps1", 3).Obj()).
 				ReserveQuotaAt(
 					utiltestingapi.MakeAdmission("cluster-queue").
-						PodSets(kueue.PodSetAssignment{Name: "ps1", Count: ptr.To[int32](8)}).
+						PodSets(kueue.PodSetAssignment{Name: "ps1", Count: new(int32(8))}).
 						Obj(), now,
 				).
 				ReclaimablePods(
@@ -917,7 +992,7 @@ func TestValidateWorkloadUpdate(t *testing.T) {
 				PodSets(*utiltestingapi.MakePodSet("ps1", 3).Obj()).
 				ReserveQuotaAt(
 					utiltestingapi.MakeAdmission("cluster-queue").
-						PodSets(kueue.PodSetAssignment{Name: "ps1", Count: ptr.To[int32](8)}).
+						PodSets(kueue.PodSetAssignment{Name: "ps1", Count: new(int32(8))}).
 						Obj(), now,
 				).
 				ReclaimablePods(
@@ -937,7 +1012,7 @@ func TestValidateWorkloadUpdate(t *testing.T) {
 				PodSets(*utiltestingapi.MakePodSet("ps1", 10).Obj()).
 				ReserveQuotaAt(
 					utiltestingapi.MakeAdmission("cluster-queue").
-						PodSets(kueue.PodSetAssignment{Name: "ps1", Count: ptr.To[int32](20)}).
+						PodSets(kueue.PodSetAssignment{Name: "ps1", Count: new(int32(20))}).
 						Obj(), now,
 				).
 				ReclaimablePods(
@@ -949,7 +1024,7 @@ func TestValidateWorkloadUpdate(t *testing.T) {
 				PodSets(*utiltestingapi.MakePodSet("ps1", 10).Obj()).
 				ReserveQuotaAt(
 					utiltestingapi.MakeAdmission("cluster-queue").
-						PodSets(kueue.PodSetAssignment{Name: "ps1", Count: ptr.To[int32](20)}).
+						PodSets(kueue.PodSetAssignment{Name: "ps1", Count: new(int32(20))}).
 						Obj(), now,
 				).
 				ReclaimablePods(
@@ -995,7 +1070,7 @@ func TestValidateWorkloadUpdate(t *testing.T) {
 				PodSets(*utiltestingapi.MakePodSet("ps1", 8).Obj()).
 				ReserveQuotaAt(
 					utiltestingapi.MakeAdmission("cluster-queue").
-						PodSets(kueue.PodSetAssignment{Name: "ps1", Count: ptr.To[int32](8)}).
+						PodSets(kueue.PodSetAssignment{Name: "ps1", Count: new(int32(8))}).
 						Obj(), now,
 				).
 				ReclaimablePods(
@@ -1007,7 +1082,7 @@ func TestValidateWorkloadUpdate(t *testing.T) {
 				PodSets(*utiltestingapi.MakePodSet("ps1", 1).Obj()).
 				ReserveQuotaAt(
 					utiltestingapi.MakeAdmission("cluster-queue").
-						PodSets(kueue.PodSetAssignment{Name: "ps1", Count: ptr.To[int32](8)}).
+						PodSets(kueue.PodSetAssignment{Name: "ps1", Count: new(int32(8))}).
 						Obj(), now,
 				).
 				Obj(),
@@ -1403,16 +1478,15 @@ func TestValidateWorkloadUpdate(t *testing.T) {
 				Obj(),
 			wantErr: nil,
 		},
-		"negative subGroupCount is accepted with a warning": {
-			before: utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).PodSets(
-				*utiltestingapi.MakePodSet("main", 1).Obj(),
-			).Obj(),
-			after: utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).PodSets(
-				*utiltestingapi.MakePodSet("main", 1).SubGroupCount(new(int32(-1))).Obj(),
-			).Obj(),
-			wantWarnings: admission.Warnings{
-				"spec.podSets[0].topologyRequest.subGroupCount: negative value -1 is deprecated and will be rejected in a future release",
-			},
+		// Refusing this update would leave the object undeletable.
+		"a workload whose quota reservation lost its admission can still drop its finalizer": {
+			before: func() *kueue.Workload {
+				wl := quotaReservedWithoutAdmission(now)
+				wl.Finalizers = []string{kueue.ResourceInUseFinalizerName}
+				return wl
+			}(),
+			after:   quotaReservedWithoutAdmission(now),
+			wantErr: nil,
 		},
 	}
 	for name, tc := range testCases {
@@ -1424,6 +1498,79 @@ func TestValidateWorkloadUpdate(t *testing.T) {
 			}
 			if diff := cmp.Diff(tc.wantWarnings, gotWarnings); diff != "" {
 				t.Errorf("ValidateUpdate() warnings mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestWorkloadWebhookDefault(t *testing.T) {
+	elasticWorkload := func() *kueue.Workload {
+		return utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).
+			Annotation(workloadslicing.EnabledAnnotationKey, workloadslicing.EnabledAnnotationValue).
+			PodSets(*utiltestingapi.MakePodSet("main", 10).SetMinimumCount(5).Obj()).
+			Obj()
+	}
+	plainWorkload := func() *kueue.Workload {
+		return utiltestingapi.MakeWorkload(testWorkloadName, testWorkloadNamespace).
+			PodSets(*utiltestingapi.MakePodSet("main", 10).SetMinimumCount(5).Obj()).
+			Obj()
+	}
+
+	cases := map[string]struct {
+		featureGates map[featuregate.Feature]bool
+		workload     *kueue.Workload
+		wantCleared  bool
+	}{
+		"PartialAdmission off, plain workload: minCount cleared": {
+			featureGates: map[featuregate.Feature]bool{features.PartialAdmission: false},
+			workload:     plainWorkload(),
+			wantCleared:  true,
+		},
+		"PartialAdmission on, plain workload: minCount kept": {
+			featureGates: map[featuregate.Feature]bool{features.PartialAdmission: true},
+			workload:     plainWorkload(),
+			wantCleared:  false,
+		},
+		"PartialAdmission off, partial scale-up on, elastic workload: minCount kept": {
+			featureGates: map[featuregate.Feature]bool{
+				features.PartialAdmission:                                      false,
+				features.ElasticJobsViaWorkloadSlices:                          true,
+				features.ElasticJobsViaWorkloadSlicesWithPartialReplicaScaleUp: true,
+			},
+			workload:    elasticWorkload(),
+			wantCleared: false,
+		},
+		"PartialAdmission off, partial scale-up off, elastic workload: minCount cleared": {
+			featureGates: map[featuregate.Feature]bool{
+				features.PartialAdmission:                                      false,
+				features.ElasticJobsViaWorkloadSlices:                          true,
+				features.ElasticJobsViaWorkloadSlicesWithPartialReplicaScaleUp: false,
+			},
+			workload:    elasticWorkload(),
+			wantCleared: true,
+		},
+		"PartialAdmission off, partial scale-up on, plain workload: minCount cleared": {
+			featureGates: map[featuregate.Feature]bool{
+				features.PartialAdmission:                                      false,
+				features.ElasticJobsViaWorkloadSlices:                          true,
+				features.ElasticJobsViaWorkloadSlicesWithPartialReplicaScaleUp: true,
+			},
+			workload:    plainWorkload(),
+			wantCleared: true,
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			features.SetFeatureGatesDuringTest(t, tc.featureGates)
+			wl := tc.workload.DeepCopy()
+			if err := (&WorkloadWebhook{}).Default(t.Context(), wl); err != nil {
+				t.Fatalf("Default() returned error: %v", err)
+			}
+			for _, ps := range wl.Spec.PodSets {
+				if cleared := ps.MinCount == nil; cleared != tc.wantCleared {
+					t.Errorf("podSet %q: minCount cleared = %v, want %v", ps.Name, cleared, tc.wantCleared)
+				}
 			}
 		})
 	}

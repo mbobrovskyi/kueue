@@ -31,6 +31,7 @@ import (
 	"sigs.k8s.io/kueue/pkg/features"
 	"sigs.k8s.io/kueue/pkg/metrics"
 	"sigs.k8s.io/kueue/pkg/resources"
+	"sigs.k8s.io/kueue/pkg/util/resourcegroups"
 	utiltas "sigs.k8s.io/kueue/pkg/util/tas"
 	"sigs.k8s.io/kueue/pkg/workload"
 )
@@ -51,7 +52,7 @@ const (
 
 type ClusterQueueSnapshot struct {
 	Name                      kueue.ClusterQueueReference
-	ResourceGroups            []ResourceGroup
+	ResourceGroups            []resourcegroups.ResourceGroup
 	Workloads                 map[workload.Reference]*workload.Info
 	WorkloadsNotReady         sets.Set[workload.Reference]
 	NamespaceSelector         labels.Selector
@@ -81,13 +82,8 @@ type ClusterQueueSnapshot struct {
 
 // RGByResource returns the ResourceGroup which contains capacity
 // for the resource, or nil if the CQ doesn't provide this resource.
-func (c *ClusterQueueSnapshot) RGByResource(resource corev1.ResourceName) *ResourceGroup {
-	for i := range c.ResourceGroups {
-		if c.ResourceGroups[i].CoveredResources.Has(resource) {
-			return &c.ResourceGroups[i]
-		}
-	}
-	return nil
+func (c *ClusterQueueSnapshot) RGByResource(resource corev1.ResourceName) *resourcegroups.ResourceGroup {
+	return resourcegroups.RGByResource(c.ResourceGroups, resource)
 }
 
 // SimulateUsageAddition modifies the snapshot by adding usage, and
@@ -108,15 +104,17 @@ func (c *ClusterQueueSnapshot) SimulateUsageRemoval(usage workload.Usage) func()
 	}
 }
 
+// AddUsage skips sibling TAS flavors. Use Snapshot methods to sync them.
 func (c *ClusterQueueSnapshot) AddUsage(usage workload.Usage) {
-	for fr, q := range usage.Quota {
+	for fr, q := range usage.Quota.Assigned {
 		addUsage(c, fr, q)
 	}
 	c.updateTASUsage(usage.TAS, add)
 }
 
+// RemoveUsage skips sibling TAS flavors. Use Snapshot methods to sync them.
 func (c *ClusterQueueSnapshot) RemoveUsage(usage workload.Usage) {
-	for fr, q := range usage.Quota {
+	for fr, q := range usage.Quota.Assigned {
 		removeUsage(c, fr, q)
 	}
 	c.updateTASUsage(usage.TAS, subtract)
@@ -136,7 +134,7 @@ func (c *ClusterQueueSnapshot) updateTASUsage(usage workload.TASUsage, op usageO
 }
 
 func (c *ClusterQueueSnapshot) Fits(usage workload.Usage) FitsCheck {
-	for fr, q := range usage.Quota {
+	for fr, q := range usage.Quota.Assigned {
 		if c.Available(fr).Cmp(q) < 0 {
 			return FitsCheckNoQuota
 		}
@@ -227,9 +225,18 @@ func (c *ClusterQueueSnapshot) FindTopologyAssignmentsForWorkload(
 		// already checked earlier during flavor assignment, and the set of
 		// flavors is immutable in snapshot.
 		tasFlavorCache := c.TASFlavors[tasFlavor]
+		// options is cloned only when there is something to append, so the
+		// common path adds no allocation per flavor.
 		flvOpts := options
-		if features.Enabled(features.TASHandleOverlappingFlavors) && tasFlavorCache.isLowestLevelNode {
-			flvOpts = append(slices.Clone(options), WithAggregatedDomainUsages(aggregatedDomainUsages))
+		if spreadCounts := c.topologySpreadCountsForFlavor(opts.workload, tasFlavor, flavorTASRequests); len(spreadCounts) > 0 {
+			flvOpts = append(slices.Clone(flvOpts), WithTopologySpreadCounts(spreadCounts))
+		}
+		// The aggregation is limited to flavors with a user-declared hostname
+		// level, as only node names identify the same capacity across
+		// flavors. Aggregating at node granularity for virtual hostname
+		// topologies is left to a follow-up.
+		if features.Enabled(features.TASHandleOverlappingFlavors) && tasFlavorCache.declaresHostnameLevel() {
+			flvOpts = append(slices.Clone(flvOpts), WithAggregatedDomainUsages(aggregatedDomainUsages))
 		}
 		flvResult := tasFlavorCache.FindTopologyAssignmentsForFlavor(ctx, flavorTASRequests, flvOpts...)
 		for psName, res := range flvResult {
