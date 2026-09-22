@@ -50,7 +50,7 @@ cmd/kueuectl/app/list/list_resourceflavor_test.go
 cmd/kueuectl/app/list/list_workload_test.go
   h_47cee5fa694435 716-718,844-846,910-912,922-923,930-931,963-964,967
 cmd/kueuectl/app/version/version_test.go
-  h_47cee5fa694435 47-48
+  h_47cee5fa694435 47-48,70
 cmd/kueueviz/backend/handlers/api_handlers_test.go
   h_47cee5fa694435 77-78
 cmd/kueueviz/backend/handlers/local_queue_workloads_test.go
