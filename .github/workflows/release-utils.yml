@@ -656,6 +656,11 @@ jobs:
           repo: ${{ github.repository }}
           update-release-issue: true
 
+      - name: Update new version in krew-index
+        uses: $/.github/actions/krew-release
+        with:
+          version: ${{ needs.authorize.outputs.version }}
+
       - name: Report Success
         if: ${{ success() }}
         uses: $/.github/actions/report-result
