@@ -645,27 +645,41 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          ref: ${{ needs.authorize.outputs.version }}
+          persist-credentials: false
+
+      - name: Checkout automation actions from main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
           ref: main
+          path: .automation
+          sparse-checkout: |
+            .github/actions
+            hack/releasing
+          sparse-checkout-cone-mode: false
           persist-credentials: false
 
       - name: Publish Release
         id: publish
-        uses: $/.github/actions/publish-release
+        uses: ./.automation/.github/actions/publish-release
         with:
           version: ${{ needs.authorize.outputs.version }}
           repo: ${{ github.repository }}
           update-release-issue: true
 
+      - name: Update new version in krew-index
+        uses: rajatjindal/krew-release-bot@c970b8a8f6dbc2f2285a26e3ae160903b87002c3 # v0.0.51
+
       - name: Report Success
         if: ${{ success() }}
-        uses: $/.github/actions/report-result
+        uses: ./.automation/.github/actions/report-result
         with:
           command: ${{ needs.authorize.outputs.command }}
           message: ${{ steps.publish.outputs.message }}
 
       - name: Report Failure
         if: ${{ failure() }}
-        uses: $/.github/actions/report-result
+        uses: ./.automation/.github/actions/report-result
         with:
           command: ${{ needs.authorize.outputs.command }}
           message: ${{ steps.publish.outputs.message || '❌ Failed to publish release.' }}
