@@ -44,6 +44,7 @@ jobs:
             ".github/actions/generate-sbom/action.yml"
             ".github/actions/merge-main-into-website/action.yml"
             ".github/actions/publish-release/action.yml"
+            ".github/actions/update-krew-index/action.yml"
             ".github/actions/report-result/action.yml"
             "hack/releasing/authorize_release_actor.py"
             "hack/releasing/authorize_release_actor_test.py"
@@ -645,43 +646,33 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-          ref: ${{ needs.authorize.outputs.version }}
-          persist-credentials: false
-
-      - name: Checkout automation actions from main
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
           ref: main
-          path: .automation
-          sparse-checkout: |
-            .github/actions
-            hack/releasing
-          sparse-checkout-cone-mode: false
           persist-credentials: false
 
       - name: Publish Release
         id: publish
-        uses: ./.automation/.github/actions/publish-release
+        uses: $/.github/actions/publish-release
         with:
           version: ${{ needs.authorize.outputs.version }}
           repo: ${{ github.repository }}
           update-release-issue: true
 
       - name: Update new version in krew-index
-        uses: docker://ghcr.io/rajatjindal/krew-release-bot:v0.0.51
+        uses: $/.github/.github/actions/update-krew-index
         with:
-          krew_plugin_release_tag: ${{ needs.authorize.outputs.version }}
+          version: ${{ needs.authorize.outputs.version }}
+          repo: ${{ github.repository }}
 
       - name: Report Success
         if: ${{ success() }}
-        uses: ./.automation/.github/actions/report-result
+        uses: $/.github/actions/report-result
         with:
           command: ${{ needs.authorize.outputs.command }}
           message: ${{ steps.publish.outputs.message }}
 
       - name: Report Failure
         if: ${{ failure() }}
-        uses: ./.automation/.github/actions/report-result
+        uses: $/.github/actions/report-result
         with:
           command: ${{ needs.authorize.outputs.command }}
           message: ${{ steps.publish.outputs.message || '❌ Failed to publish release.' }}

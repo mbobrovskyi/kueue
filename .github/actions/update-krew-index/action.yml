@@ -1,0 +1,30 @@
+name: Update Krew Index
+description: Updates the krew index with the new plugin version if it is the latest release.
+
+inputs:
+  version:
+    description: Release version, formatted as vX.Y.Z (e.g. v0.10.0)
+    required: true
+  repo:
+    description: Target repository in owner/name format
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Check if latest release
+      id: check_latest
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        VERSION: ${{ inputs.version }}
+        TARGET_REPO: ${{ inputs.repo }}
+      run: |
+        IS_LATEST=$(gh release view "$VERSION" --repo "$TARGET_REPO" --json isLatest --jq '.isLatest')
+        echo "result=$IS_LATEST" >> "$GITHUB_OUTPUT"
+
+    - name: Update new version in krew-index
+      if: ${{ steps.check_latest.outputs.result == 'true' }}
+      uses: docker://ghcr.io/rajatjindal/krew-release-bot:v0.0.51
+      with:
+        krew_plugin_release_tag: ${{ inputs.version }}
