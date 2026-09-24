@@ -667,18 +667,10 @@ jobs:
           repo: ${{ github.repository }}
           update-release-issue: true
 
-      - name: Get tag commit SHA
-        id: tag_sha
-        env:
-          VERSION: ${{ needs.authorize.outputs.version }}
-        run: echo "sha=$(git rev-list -n 1 $VERSION)" >> "$GITHUB_OUTPUT"
-
       - name: Update new version in krew-index
         uses: rajatjindal/krew-release-bot@c970b8a8f6dbc2f2285a26e3ae160903b87002c3 # v0.0.51
-        env:
-          GITHUB_REF: refs/tags/${{ needs.authorize.outputs.version }}
-          GITHUB_SHA: ${{ steps.tag_sha.outputs.sha }}
-          INPUT_KREW_PLUGIN_RELEASE_TAG: ${{ needs.authorize.outputs.version }}
+        with:
+          krew_plugin_release_tag: ${{ needs.authorize.outputs.version }}
 
       - name: Report Success
         if: ${{ success() }}
