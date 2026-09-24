@@ -44,6 +44,7 @@ jobs:
             ".github/actions/generate-sbom/action.yml"
             ".github/actions/merge-main-into-website/action.yml"
             ".github/actions/publish-release/action.yml"
+            ".github/actions/update-krew-index/action.yml"
             ".github/actions/report-result/action.yml"
             "hack/releasing/authorize_release_actor.py"
             "hack/releasing/authorize_release_actor_test.py"
@@ -668,9 +669,10 @@ jobs:
           update-release-issue: true
 
       - name: Update new version in krew-index
-        uses: docker://ghcr.io/rajatjindal/krew-release-bot:v0.0.51
+        uses: ./.automation/.github/actions/update-krew-index
         with:
-          krew_plugin_release_tag: ${{ needs.authorize.outputs.version }}
+          version: ${{ needs.authorize.outputs.version }}
+          repo: ${{ github.repository }}
 
       - name: Report Success
         if: ${{ success() }}
