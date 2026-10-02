@@ -107,7 +107,6 @@ verify-checks: verify-ci-lint verify-lint-api verify-fmt-verify verify-e2e-commo
 # the exact same commands.  Only the prerequisites differ:
 #
 #   standalone  →  tool binary only          (fast, for local use)
-#   verify-*    →  verify-tree-prereqs + …   (full generation first)
 #
 # A recipe-less wrapper like
 #
