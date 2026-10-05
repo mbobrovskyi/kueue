@@ -16,7 +16,7 @@ test/util/behavioral/constants.go
   h_47cee5fa694435 42,43,45,49,50-52,53
   h_47cee5fa694435 42,50-52
 test/performance/scheduler/runner/generator/topology_generator.go
-  h_47cee5fa694435 98
+  h_47cee5fa694435 32,98
   h_47cee5fa694435 32
 ---
 {
