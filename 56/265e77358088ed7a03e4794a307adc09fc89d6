@@ -1,5 +1,7 @@
 test/integration/singlecluster/controller/core/workload_hash_freshness_test.go
   h_47cee5fa694435 61
+test/integration/singlecluster/scheduler/preemption_test.go
+  h_47cee5fa694435 60,1600,1603,1607-1609,1619-1620,1639,1643,1645,1652
 ---
 {
   "schema_version": "authorship/3.0.0",
