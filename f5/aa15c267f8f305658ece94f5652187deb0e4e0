@@ -12,7 +12,7 @@ test/util/behavioral/suite.go
 test/util/behavioral/e2e/restart.go
   h_47cee5fa694435 1-174
 test/util/behavioral/e2e/multikueue.go
-  h_47cee5fa694435 22,291-309
+  h_47cee5fa694435 22,291-309,310
   h_47cee5fa694435 310
 test/util/behavioral/pods.go
   h_47cee5fa694435 1-134
@@ -28,12 +28,12 @@ test/util/behavioral/admissionchecks.go
 test/util/behavioral/workload.go
   h_47cee5fa694435 52,403,405-406,408-418,421,441-453,696,698-705,708-713,715-727,754-767,771-785,788-795,798-812,815-819,821,823-830,834-835,838-845,849-850,852-854,857-858
 test/util/behavioral/e2e/metrics.go
-  h_47cee5fa694435 21,27-28,51-91
+  h_47cee5fa694435 21,27-28,51-91,92
   h_47cee5fa694435 92
 test/util/behavioral/e2e/images.go
   h_47cee5fa694435 1-133
 test/util/behavioral/multikueue.go
-  h_47cee5fa694435 21,25-28,93-159
+  h_47cee5fa694435 21,25-28,93-159,160
   h_47cee5fa694435 160
 test/util/behavioral/jobs.go
   h_47cee5fa694435 1-20,21,22-138
@@ -41,7 +41,7 @@ test/util/behavioral/events.go
   h_47cee5fa694435 25,33-35
   s_39103e008f0dd7::t_c343d20752e02a 36
 test/util/behavioral/queues.go
-  h_47cee5fa694435 20-23,26-28,46-117
+  h_47cee5fa694435 20-23,26-28,46-117,118
   h_47cee5fa694435 118
 test/integration/framework/framework.go
   h_47cee5fa694435 28,39,56,98-103,105,273-287,295
