@@ -288,12 +288,22 @@ def set_release_note(pr_body: str, release_note: str) -> str:
     return updated_body
 
 
+def success_comment(release_note: str) -> str:
+    """Build the confirmation comment, showing the note that was set.
+
+    Text after another command is not part of the note, so the author can
+    check here what was kept. The note never contains a fence.
+    """
+    return f"✅ The release note was updated:\n\n```release-note\n{release_note}\n```\n"
+
+
 def main() -> int:
     """Read file arguments and generate the updated pull request body."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--comment-file", required=True, type=Path)
     parser.add_argument("--body-file", required=True, type=Path)
     parser.add_argument("--output-file", required=True, type=Path)
+    parser.add_argument("--success-comment-file", type=Path)
     args = parser.parse_args()
 
     try:
@@ -305,6 +315,10 @@ def main() -> int:
         parser.exit(1, f"{error}\n")
 
     args.output_file.write_text(updated_body, encoding="utf-8")
+    if args.success_comment_file is not None:
+        args.success_comment_file.write_text(
+            success_comment(release_note), encoding="utf-8"
+        )
     return 0
 
 

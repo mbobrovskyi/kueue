@@ -270,6 +270,14 @@ class SetReleaseNoteTest(unittest.TestCase):
                 set_release_note.set_release_note(pr_body, release_note)
 
 
+class SuccessCommentTest(unittest.TestCase):
+    def test_shows_the_note(self) -> None:
+        self.assertEqual(
+            "✅ The release note was updated:\n\n```release-note\nFirst line\nSecond line\n```\n",
+            set_release_note.success_comment("First line\nSecond line"),
+        )
+
+
 class MainTest(unittest.TestCase):
     def test_writes_updated_body(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -277,6 +285,7 @@ class MainTest(unittest.TestCase):
             comment_file = temp_path / "comment.md"
             body_file = temp_path / "body.md"
             output_file = temp_path / "output.md"
+            success_comment_file = temp_path / "success_comment.md"
             comment_file.write_text(
                 "/set-release-note\nnew note", encoding="utf-8"
             )
@@ -293,6 +302,8 @@ class MainTest(unittest.TestCase):
                     str(body_file),
                     "--output-file",
                     str(output_file),
+                    "--success-comment-file",
+                    str(success_comment_file),
                 ],
             ):
                 self.assertEqual(0, set_release_note.main())
@@ -300,6 +311,10 @@ class MainTest(unittest.TestCase):
             self.assertEqual(
                 "Summary\n\n```release-note\nnew note\n```\n",
                 output_file.read_text(encoding="utf-8"),
+            )
+            self.assertEqual(
+                "✅ The release note was updated:\n\n```release-note\nnew note\n```\n",
+                success_comment_file.read_text(encoding="utf-8"),
             )
 
     def test_reports_validation_error(self) -> None:
