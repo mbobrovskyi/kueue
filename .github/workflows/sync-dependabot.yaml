@@ -17,7 +17,7 @@ jobs:
           && github.actor == 'dependabot[bot]'
           && (github.event.action != 'labeled' || github.event.label.name == 'ok-to-test') 
           && (contains(github.event.pull_request.title, 'hugo')
-▎               || contains(github.event.pull_request.title, 'sigs.k8s.io/controller-tools')) }}
+               || contains(github.event.pull_request.title, 'sigs.k8s.io/controller-tools')) }}
     runs-on: ubuntu-latest
 
     # The job has no side effects, so a newer run can replace an older one.
