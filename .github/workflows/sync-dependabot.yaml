@@ -13,8 +13,6 @@ jobs:
   generate:
     if: >-
       ${{ contains(github.event.pull_request.labels.*.name, 'ok-to-test')
-          && github.event.pull_request.user.login == 'dependabot[bot]'
-          && github.actor == 'dependabot[bot]'
           && (github.event.action != 'labeled' || github.event.label.name == 'ok-to-test')
           && (contains(github.event.pull_request.title, 'hugo')
               || contains(github.event.pull_request.title, 'sigs.k8s.io/controller-tools')) }}
