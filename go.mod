@@ -10,7 +10,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/json-iterator/go v1.1.12
 	github.com/kubeflow/mpi-operator v0.8.2
-	github.com/kubeflow/spark-operator/v2 v2.5.2
+	github.com/kubeflow/spark-operator/v2 v2.6.0
 	github.com/kubeflow/trainer/v2 v2.0.0-20260910145234-8ca43ecb96b2
 	github.com/kubeflow/training-operator v1.9.4
 	github.com/onsi/ginkgo/v2 v2.34.0
